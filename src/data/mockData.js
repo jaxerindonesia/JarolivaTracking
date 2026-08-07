@@ -30,11 +30,11 @@ export const userStats = {
 }
 
 export const products = [
-  { id: 1, name: 'Jaroliva', img: 'https://placehold.co/56x72/4A7C59/fff?text=Jaroliva', qty: '1 sdm', color: '#4A7C59' },
-  { id: 2, name: 'Cocofenol', img: 'https://placehold.co/56x72/8B5E3C/fff?text=Cocofenol', qty: '1 sdm', color: '#8B5E3C' },
-  { id: 3, name: 'Ketone...', img: 'https://placehold.co/56x72/1a2a4a/fff?text=Ketone%2B', qty: '1 sdt', color: '#5A6FA8' },
-  { id: 4, name: 'Max C8 Oil', img: 'https://placehold.co/56x72/2E8B8B/fff?text=Max+C8', qty: '4 semprot', color: '#2E8B8B' },
-  { id: 5, name: 'Vanilla Ghee', img: 'https://placehold.co/56x72/C4860A/fff?text=V.Ghee', qty: '1 sdm', color: '#C4860A' },
+  { id: 1, name: 'Jaroliva', img: '/products/jaroliva.png', qty: '1 sdm', color: '#4A7C59' },
+  { id: 2, name: 'Cocofenol', img: '/products/cocofenol.png', qty: '1 sdm', color: '#8B5E3C' },
+  { id: 3, name: 'Ketone Immuno', img: '/products/ketone-immuno.png', qty: '1 sdt', color: '#5A6FA8' },
+  { id: 4, name: 'Max C8 Oil', img: '/products/max-c8-oil.png', qty: '4 semprot', color: '#2E8B8B' },
+  { id: 5, name: 'Vanilla Ghee', img: '/products/vanilla-ghee.png', qty: '1 sdm', color: '#C4860A' },
 ]
 
 export const consumptionLog = [

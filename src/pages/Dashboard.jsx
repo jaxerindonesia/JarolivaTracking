@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { Bell, Zap, ChevronRight, Activity, Heart } from 'lucide-react'
+import {
+  Bell, Zap, ChevronRight, Activity, Heart, Package,
+  PlayCircle, Users, Flame, Star, Droplets
+} from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import {
@@ -73,7 +76,7 @@ export default function Dashboard() {
               className="btn-program"
               onClick={() => navigate('/program')}
             >
-              ⚡ Lihat Program Aktif ⚡
+              <Zap size={15} /> Lihat Program Aktif 🔥
             </button>
           </div>
         </div>
@@ -105,15 +108,16 @@ export default function Dashboard() {
       <div className="mission-card fade-in fade-in-delay-2">
         <div className="mission-header">
           <div className="mission-title">
-            🔄 TODAY'S MISSION
+            <span className="mission-title-icon"><Droplets size={17} /></span>
+            <span>
+              TODAY'S MISSION
+              <small>Minum {userStats.water_goal} gelas air hari ini</small>
+            </span>
           </div>
           <span className="mission-count">
             {userStats.water_glasses} / {userStats.water_goal}
           </span>
         </div>
-        <p style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', marginBottom: 12 }}>
-          Minum {userStats.water_goal} gelas air hari ini
-        </p>
         <div className="water-pills">
           {Array.from({ length: userStats.water_goal }).map((_, i) => (
             <div
@@ -126,10 +130,11 @@ export default function Dashboard() {
       </div>
 
       {/* Produk Protokol */}
-      <div className="fade-in fade-in-delay-3" style={{ marginBottom: 24 }}>
+      <div className="product-protocol-panel fade-in fade-in-delay-3">
         <div className="section-header">
-          <div className="section-title">
-            🧪 Produk Protokol FF72
+          <div className="section-title product-protocol-title">
+            <Package size={15} />
+            Produk Protokol FF72
           </div>
           <button className="section-link" onClick={() => navigate('/program')}>
             Lihat jadwal <ChevronRight size={14} />
@@ -192,8 +197,8 @@ export default function Dashboard() {
       </div>
 
       {/* Aksi Cepat */}
-      <div className="fade-in fade-in-delay-4" style={{ marginBottom: 32 }}>
-        <div className="section-title" style={{ marginBottom: 16 }}>
+      <div className="quick-actions-section fade-in fade-in-delay-4">
+        <div className="section-title quick-actions-title">
           Aksi Cepat
         </div>
         <div className="quick-actions-grid">
@@ -204,7 +209,7 @@ export default function Dashboard() {
             <div className="quick-action-icon" style={{ background: 'rgba(232, 64, 64, 0.1)' }}>
               <Heart size={20} style={{ color: '#E84040' }} />
             </div>
-            <span>Log Kesehatan</span>
+            <span className="quick-action-copy"><strong>Log Kesehatan</strong></span>
           </button>
           <button
             className="quick-action-btn"
@@ -213,7 +218,43 @@ export default function Dashboard() {
             <div className="quick-action-icon" style={{ background: 'rgba(74, 144, 217, 0.1)' }}>
               <Activity size={20} style={{ color: '#4A90D9' }} />
             </div>
-            <span>Panduan Produk</span>
+            <span className="quick-action-copy"><strong>Panduan Produk</strong></span>
+          </button>
+          <button
+            className="quick-action-btn"
+            onClick={() => navigate('/program')}
+          >
+            <div className="quick-action-icon quick-action-icon-green">
+              <PlayCircle size={21} />
+            </div>
+            <span className="quick-action-copy"><strong>Video Edukasi</strong></span>
+          </button>
+          <button
+            className="quick-action-btn"
+            onClick={() => navigate('/komunitas')}
+          >
+            <div className="quick-action-icon quick-action-icon-purple">
+              <Users size={21} />
+            </div>
+            <span className="quick-action-copy"><strong>Komunitas</strong></span>
+          </button>
+          <button className="quick-action-btn quick-action-stat" onClick={() => navigate('/progress')}>
+            <div className="quick-action-icon quick-action-icon-orange">
+              <Flame size={21} />
+            </div>
+            <span className="quick-action-copy">
+              <strong>0x</strong>
+              <small>FF72 Selesai</small>
+            </span>
+          </button>
+          <button className="quick-action-btn quick-action-stat" onClick={() => navigate('/reward')}>
+            <div className="quick-action-icon quick-action-icon-yellow">
+              <Star size={21} />
+            </div>
+            <span className="quick-action-copy">
+              <strong>0</strong>
+              <small>Total Poin</small>
+            </span>
           </button>
         </div>
       </div>

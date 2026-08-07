@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ChevronRight, AlertTriangle } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { ChevronRight, AlertTriangle, X, Square, Phone } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import { activeSession, checkins, glucoseLogs, products, consumptionLog } from '../data/mockData'
@@ -8,7 +9,10 @@ const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
 
 export default function ProgramFF72() {
   const [activeTab, setActiveTab] = useState('Tracker')
+  const [showStopModal, setShowStopModal] = useState(false)
+  const [stopReason, setStopReason] = useState('')
   const timer = useFastingTimer(activeSession.start_time, activeSession.target_hours)
+  const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
 
   return (
     <div className="fade-in">
@@ -145,8 +149,9 @@ export default function ProgramFF72() {
           <button
             className="btn btn-danger btn-full"
             style={{ marginTop: 16 }}
+            onClick={() => setShowStopModal(true)}
           >
-            <AlertTriangle size={16} />
+            <Square size={16} />
             Saya Ingin Menghentikan Puasa
           </button>
         </div>
@@ -241,6 +246,55 @@ export default function ProgramFF72() {
           ))}
         </div>
       )}
+
+      {showStopModal && createPortal((
+        <div className="stop-program-overlay" role="presentation" onMouseDown={() => setShowStopModal(false)}>
+          <div
+            className="stop-program-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="stop-program-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button className="stop-modal-close" aria-label="Tutup" onClick={() => setShowStopModal(false)}>
+              <X size={19} />
+            </button>
+            <h2 id="stop-program-title">Hentikan Program</h2>
+            <p className="stop-modal-subtitle">Apa yang sedang Anda rasakan?</p>
+
+            <div className="stop-reason-grid">
+              {stopReasons.map((reason) => (
+                <button
+                  key={reason}
+                  className={`stop-reason${stopReason === reason ? ' selected' : ''}`}
+                  onClick={() => setStopReason(reason)}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+
+            <div className="stop-safety-card">
+              <strong><AlertTriangle size={15} /> Cara berhenti yang aman:</strong>
+              <ol>
+                <li>Minum air putih perlahan.</li>
+                <li>Konsumsi 1 sendok makan madu atau jus buah encer.</li>
+                <li>Duduk/berbaring dan istirahat.</li>
+                <li>Jika tidak membaik, segera hubungi tenaga kesehatan.</li>
+              </ol>
+            </div>
+
+            <div className="stop-modal-actions">
+              <button className="stop-continue-button" onClick={() => setShowStopModal(false)}>
+                Tetap Lanjutkan
+              </button>
+              <button className="stop-confirm-button">
+                <Phone size={16} /> Hentikan
+              </button>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
     </div>
   )
 }

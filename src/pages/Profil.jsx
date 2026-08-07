@@ -1,60 +1,94 @@
-import { currentUser } from '../data/mockData'
+import {
+  Award,
+  CalendarDays,
+  ChevronRight,
+  Edit3,
+  Mail,
+  MapPin,
+  Phone,
+  Ruler,
+  ShieldCheck,
+  Trophy,
+  UserRound,
+  Weight,
+  Zap,
+} from 'lucide-react'
+import { screeningResult } from '../data/mockData'
+
+const profile = {
+  name: 'Jax Lab',
+  email: 'jaxlabofficial@gmail.com',
+  phone: '08123456789',
+  age: '24 tahun',
+  gender: 'Perempuan',
+  city: 'Bekasi',
+  weight: '48 kg',
+  height: '160 cm',
+}
+
+const profileRows = [
+  { label: 'Nama Lengkap', value: profile.name, icon: UserRound },
+  { label: 'Email', value: profile.email, icon: Mail },
+  { label: 'No. Telepon', value: profile.phone, icon: Phone },
+  { label: 'Umur', value: profile.age, icon: CalendarDays },
+  { label: 'Jenis Kelamin', value: profile.gender, icon: UserRound },
+  { label: 'Kota', value: profile.city, icon: MapPin },
+  { label: 'Berat Badan', value: profile.weight, icon: Weight },
+  { label: 'Tinggi Badan', value: profile.height, icon: Ruler },
+]
 
 export default function Profil() {
   return (
-    <div className="fade-in">
-      <div className="page-header">
-        <h1 className="page-title">Profil</h1>
-        <p className="page-subtitle">Kelola informasi akun Anda</p>
+    <div className="profile-page fade-in">
+      <div className="page-header profile-header">
+        <h1 className="page-title">Profil Saya</h1>
+        <p className="page-subtitle">Kelola informasi dan data kesehatan Anda</p>
       </div>
 
-      {/* Profile Card */}
-      <div className="card" style={{ padding: 32, marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28 }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--color-navy) 0%, var(--color-green) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, color: 'white', fontWeight: 700,
-            fontFamily: 'Playfair Display, serif'
-          }}>
-            {currentUser.name[0]}
-          </div>
+      <section className="profile-hero">
+        <div className="profile-hero-orb" />
+        <div className="profile-identity">
+          <div className="profile-avatar">JL</div>
           <div>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, marginBottom: 4 }}>
-              {currentUser.name}
-            </h2>
-            <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-              {currentUser.email}
-            </p>
-            <span className="badge badge-active" style={{ marginTop: 6 }}>Member Aktif</span>
+            <h2>{profile.name}</h2>
+            <p>{profile.email}</p>
+            <span><MapPin size={13} /> {profile.city}</span>
           </div>
         </div>
 
-        {[
-          { label: 'Nama Lengkap', value: currentUser.name },
-          { label: 'Email', value: currentUser.email },
-          { label: 'Program', value: 'FF72 — Fat Fasting 72 Jam' },
-          { label: 'Status', value: 'Aktif' },
-        ].map((item) => (
-          <div key={item.label} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '14px 0',
-            borderBottom: '1px solid var(--color-border-light)'
-          }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', fontWeight: 500 }}>
-              {item.label}
-            </span>
-            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              {item.value}
-            </span>
-          </div>
-        ))}
-      </div>
+        <div className="profile-summary">
+          <div><Trophy /><strong>0</strong><span>FF72 Selesai</span></div>
+          <div><Zap /><strong>50</strong><span>Total Poin</span></div>
+          <div><Award /><strong>{screeningResult.score}</strong><span>Skor Kesiapan</span></div>
+        </div>
+      </section>
 
-      <button className="btn btn-outline btn-full" style={{ color: 'var(--color-danger)' }}>
-        Keluar dari Akun
-      </button>
+      <section className="profile-panel">
+        <div className="profile-panel-header">
+          <h3>DATA DIRI</h3>
+          <button type="button"><Edit3 /> Edit</button>
+        </div>
+        <div className="profile-details">
+          {profileRows.map(({ label, value, icon: Icon }) => (
+            <button className="profile-detail-row" type="button" key={label}>
+              <span className="profile-detail-icon"><Icon /></span>
+              <span className="profile-detail-copy"><small>{label}</small><strong>{value}</strong></span>
+              <ChevronRight className="profile-detail-arrow" />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="profile-panel profile-screening">
+        <div className="profile-panel-header"><h3>HASIL SCREENING TERAKHIR</h3></div>
+        <div className="profile-screening-content">
+          <div className="screening-score"><span>{screeningResult.score}</span><small>/ 100</small></div>
+          <div>
+            <div className="screening-ready"><ShieldCheck /> Siap Mengikuti FF72</div>
+            <p>Kondisi tubuh Anda dinilai siap untuk menjalankan program.</p>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

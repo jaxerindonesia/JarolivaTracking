@@ -40,7 +40,7 @@ export default function Dashboard() {
           <div className="fasting-status-badge">
             <span style={{
               width: 6, height: 6, borderRadius: '50%',
-              background: '#7DC242', display: 'inline-block'
+            background: '#71cf00', display: 'inline-block'
             }} />
             SEDANG BERJALAN
           </div>
@@ -54,8 +54,8 @@ export default function Dashboard() {
               size={110}
               strokeWidth={9}
               percentage={timer.percentage}
-              color="#7DC242"
-              trackColor="rgba(255,255,255,0.1)"
+              color="#71cf00"
+              trackColor="rgba(255,255,255,0.16)"
             >
               <div className="timer-label">Fasting Time</div>
               <div className="timer-time">{timer.timeString}</div>

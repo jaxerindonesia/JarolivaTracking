@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2 } from 'lucide-react'
+import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2, Clock3 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
-import { useConsumptionSchedule } from '../hooks/useConsumptionSchedule'
-import { activeSession, checkins, glucoseLogs, products, consumptionLog } from '../data/mockData'
+import { activeSession, products } from '../data/mockData'
 
 const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
 const STORAGE_KEY = 'jaxlab-ff72-session'
+const CHECKINS_KEY = 'jaxlab-ff72-checkins'
+const GLUCOSE_KEY = 'jaxlab-ff72-glucose'
+const POINTS_KEY = 'jaxlab-reward-points'
 
 const toDateTimeLocal = (date) => {
   const offset = date.getTimezoneOffset() * 60000
@@ -22,6 +24,10 @@ const getSavedSession = () => {
   }
 }
 
+const getSavedList = (key) => {
+  try { return JSON.parse(localStorage.getItem(key)) || [] } catch { return [] }
+}
+
 export default function ProgramFF72() {
   const savedSession = getSavedSession()
   const [activeTab, setActiveTab] = useState('Tracker')
@@ -31,9 +37,45 @@ export default function ProgramFF72() {
   const [sessionStart, setSessionStart] = useState(savedSession?.startTime || activeSession.start_time)
   const [stoppedAt, setStoppedAt] = useState(savedSession?.stoppedAt || null)
   const [selectedStart, setSelectedStart] = useState(toDateTimeLocal(new Date()))
+  const [showCheckinModal, setShowCheckinModal] = useState(false)
+  const [showGlucoseModal, setShowGlucoseModal] = useState(false)
+  const [condition, setCondition] = useState('')
+  const [waterGlasses, setWaterGlasses] = useState(0)
+  const [jarolivaTaken, setJarolivaTaken] = useState('')
+  const [followedProtocol, setFollowedProtocol] = useState('')
+  const [savedCheckins, setSavedCheckins] = useState(() => getSavedList(CHECKINS_KEY))
+  const [savedGlucose, setSavedGlucose] = useState(() => getSavedList(GLUCOSE_KEY))
+  const [glucosePhase, setGlucosePhase] = useState('Sebelum Mulai')
+  const [glucoseValue, setGlucoseValue] = useState('')
+  const [pointNotice, setPointNotice] = useState(false)
   const timer = useFastingTimer(sessionStart, activeSession.target_hours, stoppedAt)
-  const isConsumptionDue = useConsumptionSchedule()
   const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
+  const conditions = [
+    { label: 'Sangat Baik', emoji: '😊' }, { label: 'Baik', emoji: '🙂' },
+    { label: 'Lapar', emoji: '😋' }, { label: 'Pusing', emoji: '😣' },
+    { label: 'Lemas', emoji: '😵' }, { label: 'Mual', emoji: '🤢' },
+  ]
+
+  const saveCheckin = () => {
+    if (!condition || !jarolivaTaken || !followedProtocol) return
+    const selected = conditions.find((item) => item.label === condition)
+    const entry = { id: Date.now(), condition, emoji: selected.emoji, waterGlasses, jarolivaTaken, followedProtocol, created_at: new Date().toISOString() }
+    const next = [entry, ...savedCheckins]
+    setSavedCheckins(next)
+    localStorage.setItem(CHECKINS_KEY, JSON.stringify(next))
+    localStorage.setItem(POINTS_KEY, String(Number(localStorage.getItem(POINTS_KEY) || 0) + 10))
+    setShowCheckinModal(false); setPointNotice(true)
+    setTimeout(() => setPointNotice(false), 2600)
+    setCondition(''); setWaterGlasses(0); setJarolivaTaken(''); setFollowedProtocol('')
+  }
+
+  const saveGlucose = () => {
+    const value = Number(glucoseValue)
+    if (!value || value < 20 || value > 600) return
+    const next = [...savedGlucose, { id: Date.now(), value, unit: 'mg/dL', phase: glucosePhase, logged_at: new Date().toISOString() }]
+    setSavedGlucose(next); localStorage.setItem(GLUCOSE_KEY, JSON.stringify(next))
+    setGlucoseValue(''); setShowGlucoseModal(false)
+  }
 
   const stopProgram = () => {
     if (!stopReason) return
@@ -209,9 +251,9 @@ export default function ProgramFF72() {
             gap: 12, marginBottom: 16
           }}>
             {[
-              { icon: '✅', label: 'Check-in', value: checkins.length },
-              { icon: '💧', label: 'Gelas Air', value: 8 },
-              { icon: '❤️', label: 'Jaroliva', value: '✓' },
+              { icon: '✅', label: 'Check-in', value: savedCheckins.length },
+              { icon: '💧', label: 'Gelas Air', value: savedCheckins[0]?.waterGlasses ?? 0 },
+              { icon: '❤️', label: 'Jaroliva', value: savedCheckins[0]?.jarolivaTaken === 'Ya' ? '✓' : '—' },
             ].map((s) => (
               <div key={s.label} className="card" style={{ padding: '16px', textAlign: 'center' }}>
                 <div style={{ fontSize: 24, marginBottom: 4 }}>{s.icon}</div>
@@ -225,17 +267,14 @@ export default function ProgramFF72() {
           </div>
 
           {/* Last Condition */}
-          <div style={{ marginBottom: 10 }}>
-            <p style={{
-              fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-              letterSpacing: '1px', color: 'var(--color-text-secondary)', marginBottom: 8
-            }}>Kondisi terakhir</p>
-            {checkins.map((c) => (
+          {savedCheckins.length > 0 && <div className="last-condition-history">
+            {savedCheckins.slice(0, 1).map((c) => (
               <div key={c.id} className="condition-card">
                 <span className="condition-emoji">{c.emoji}</span>
                 <div className="condition-text">
+                  <span className="condition-history-label">Kondisi terakhir</span>
                   <strong>{c.condition}</strong>
-                  <span>{new Date(c.created_at).toLocaleDateString('id-ID', {
+                  <span className="condition-history-date">{new Date(c.created_at).toLocaleDateString('id-ID', {
                     day: '2-digit', month: '2-digit', year: '2-digit'
                   })}, {new Date(c.created_at).toLocaleTimeString('id-ID', {
                     hour: '2-digit', minute: '2-digit'
@@ -243,10 +282,10 @@ export default function ProgramFF72() {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
 
           {/* Accordion items */}
-          <div className="accordion-item">
+          <button className="accordion-item program-action-item" onClick={() => setShowCheckinModal(true)}>
             <div className="accordion-left">
               <div className="accordion-icon">📊</div>
               <div className="accordion-text">
@@ -255,18 +294,18 @@ export default function ProgramFF72() {
               </div>
             </div>
             <ChevronRight size={18} color="var(--color-text-muted)" />
-          </div>
+          </button>
 
-          <div className="accordion-item">
+          <button className="accordion-item program-action-item" onClick={() => setShowGlucoseModal(true)}>
             <div className="accordion-left">
               <div className="accordion-icon">🩸</div>
               <div className="accordion-text">
                 <h4>Catat Gula Darah</h4>
-                <p>{glucoseLogs.length} catatan tersimpan</p>
+                <p>{savedGlucose.length} catatan tersimpan</p>
               </div>
             </div>
             <ChevronRight size={18} color="var(--color-text-muted)" />
-          </div>
+          </button>
 
           {/* Stop Button */}
           <button
@@ -282,33 +321,40 @@ export default function ProgramFF72() {
 
       {activeTab === 'Timeline' && (
         <div className="fade-in">
-          <div className="card consumption-list-card">
-            {consumptionLog.map((item) => {
-              const isDue = isConsumptionDue(item.time)
-              return <div key={item.id} className={`consumption-item${isDue ? ' consumption-item-due' : ''}`}>
-                <div className="consumption-time">
-                  <span style={{ fontSize: 14 }}>🕐</span>
-                  {item.time}
-                </div>
-                <div className="consumption-icon">{item.emoji}</div>
-                <div className="consumption-text">
-                  <h4>{item.meal} — {item.items}</h4>
-                  <p>{item.detail}</p>
-                </div>
+          <div className="card fasting-timeline">
+            <h3>PERJALANAN FF72</h3>
+            {[
+              ['Mulai', 'Program dimulai', 0], ['Jam ke-12', 'Glikogen mulai habis', 12],
+              ['Jam ke-24', 'Ketosis dimulai', 24], ['Jam ke-36', 'Fat burning intensif', 36],
+              ['Jam ke-48', 'Autophagy aktif', 48], ['Jam ke-60', 'Puncak fat burning', 60],
+              ['Selesai! 🎉', 'Program berhasil', 72],
+            ].map(([title, detail, hour]) => (
+              <div className={`fasting-milestone${timer.hours >= hour ? ' reached' : ''}`} key={title}>
+                <span>{timer.hours >= hour ? <CheckCircle2 size={17} /> : <Clock3 size={17} />}</span>
+                <div><strong>{title}</strong><small>{detail}</small></div>
               </div>
-            })}
+            ))}
           </div>
         </div>
       )}
 
       {activeTab === 'Gula Darah' && (
         <div className="fade-in">
+          <div className="card glucose-chart-card">
+            <h3>GRAFIK GULA DARAH</h3>
+            {savedGlucose.length ? <div className="glucose-bars">
+              {savedGlucose.map((log) => <div className="glucose-bar-column" key={log.id}>
+                <span style={{ height: `${Math.min(100, log.value / 1.6)}%` }} title={`${log.value} mg/dL`} />
+                <small>{log.phase}</small>
+              </div>)}
+            </div> : <p className="empty-data">Belum ada catatan gula darah.</p>}
+          </div>
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            {glucoseLogs.map((log, idx) => (
+            {savedGlucose.map((log, idx) => (
               <div key={log.id} style={{
                 display: 'flex', alignItems: 'center', gap: 16,
                 padding: '16px 20px',
-                borderBottom: idx < glucoseLogs.length - 1 ? '1px solid var(--color-border-light)' : 'none'
+                borderBottom: idx < savedGlucose.length - 1 ? '1px solid var(--color-border-light)' : 'none'
               }}>
                 <div style={{
                   width: 40, height: 40, borderRadius: 10,
@@ -317,9 +363,7 @@ export default function ProgramFF72() {
                   fontSize: 18
                 }}>🩸</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                    {log.value} {log.unit}
-                  </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text-primary)' }}>{log.phase}</div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                     {new Date(log.logged_at).toLocaleDateString('id-ID', {
                       day: 'numeric', month: 'short', year: 'numeric',
@@ -342,34 +386,42 @@ export default function ProgramFF72() {
 
       {activeTab === 'Protokol' && (
         <div className="fade-in">
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-            Produk yang wajib dikonsumsi selama program FF72:
-          </p>
-          {products.map((p) => (
-            <div key={p.id} style={{
-              background: 'white', border: '1px solid var(--color-border)',
-              borderRadius: 12, padding: '14px 20px', marginBottom: 10,
-              display: 'flex', alignItems: 'center', gap: 14
-            }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: 10,
-                background: 'var(--color-bg)', fontSize: 26,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                {p.emoji}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-text-primary)' }}>
-                  {p.name}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                  Dosis: {p.qty}
-                </div>
-              </div>
-            </div>
-          ))}
+          <div className="card protocol-card"><h3>PRODUK YANG DIKONSUMSI</h3><div className="protocol-grid">
+            {products.map((p) => <div className="protocol-product" key={p.id}>
+              <img src={p.img} alt={p.name} />
+              <div><strong>{p.name}</strong><small>{p.id === 1 ? 'Extra Virgin Olive Oil' : p.id === 2 ? 'Virgin Coconut Oil' : 'Produk FF72 JaxLab'}</small>
+                <b>{p.qty}</b><em>08.00 · 13.00 · 18.30</em></div>
+            </div>)}
+          </div></div>
         </div>
       )}
+
+      {pointNotice && <div className="point-toast">🎉 Check-in tersimpan! <strong>+10 poin</strong></div>}
+
+      {showCheckinModal && createPortal((
+        <div className="stop-program-overlay" onMouseDown={() => setShowCheckinModal(false)}>
+          <div className="program-form-modal" onMouseDown={(e) => e.stopPropagation()}>
+            <button className="stop-modal-close" onClick={() => setShowCheckinModal(false)}><X size={19} /></button>
+            <h2>Bagaimana kondisi Anda?</h2><p>Isi check-in untuk memantau perkembangan</p>
+            <h4>KONDISI SAAT INI</h4><div className="condition-grid">{conditions.map((item) =>
+              <button className={condition === item.label ? 'selected' : ''} key={item.label} onClick={() => setCondition(item.label)}><span>{item.emoji}</span>{item.label}</button>)}</div>
+            <h4>SUDAH MINUM BERAPA GELAS?</h4><div className="water-options">{[0,1,2,3,4,5,6,7,8].map(n => <button className={waterGlasses === n ? 'selected' : ''} key={n} onClick={() => setWaterGlasses(n)}>{n}</button>)}</div>
+            <div className="binary-fields"><div><h4>Konsumsi Jaroliva?</h4><div>{['Ya','Tidak'].map(v => <button className={jarolivaTaken === v ? 'selected' : ''} key={v} onClick={() => setJarolivaTaken(v)}>{v}</button>)}</div></div>
+              <div><h4>Ikuti protokol?</h4><div>{['Ya','Tidak'].map(v => <button className={followedProtocol === v ? 'selected' : ''} key={v} onClick={() => setFollowedProtocol(v)}>{v}</button>)}</div></div></div>
+            <button className="modal-save-button" disabled={!condition || !jarolivaTaken || !followedProtocol} onClick={saveCheckin}>Simpan Check-in</button>
+          </div>
+        </div>
+      ), document.body)}
+
+      {showGlucoseModal && createPortal((
+        <div className="stop-program-overlay" onMouseDown={() => setShowGlucoseModal(false)}><div className="program-form-modal" onMouseDown={(e) => e.stopPropagation()}>
+          <button className="stop-modal-close" onClick={() => setShowGlucoseModal(false)}><X size={19} /></button>
+          <h2>Catat Gula Darah</h2><p>Masukkan nilai gula darah (mg/dL)</p><h4>FASE PENGUKURAN</h4>
+          <div className="phase-grid">{['Sebelum Mulai','Hari ke-2 (opsional)','Hari ke-3','Setelah Selesai'].map(v => <button className={glucosePhase === v ? 'selected' : ''} key={v} onClick={() => setGlucosePhase(v)}>{v}</button>)}</div>
+          <label className="glucose-label">Nilai gula darah (mg/dL)</label><input className="glucose-input" type="number" min="20" max="600" value={glucoseValue} onChange={(e) => setGlucoseValue(e.target.value)} placeholder="Contoh: 95" />
+          <button className="modal-save-button green" disabled={!glucoseValue} onClick={saveGlucose}>Simpan</button>
+        </div></div>
+      ), document.body)}
 
       {showStopModal && createPortal((
         <div className="stop-program-overlay" role="presentation" onMouseDown={() => setShowStopModal(false)}>

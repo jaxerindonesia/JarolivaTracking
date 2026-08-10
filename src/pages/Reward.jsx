@@ -2,8 +2,9 @@ import { Lock, CheckCircle } from 'lucide-react'
 import { rewardData, badges } from '../data/mockData'
 
 export default function Reward() {
-  const { total_points, level, next_level, next_level_points,
+  const { total_points: basePoints, level, next_level, next_level_points,
     ff72_selesai, badge_diraih, badge_tersisa } = rewardData
+  const total_points = basePoints + Number(localStorage.getItem('jaxlab-reward-points') || 0)
 
   const progressPercent = Math.min(100, (total_points / next_level_points) * 100)
   const pointsLeft = next_level_points - total_points

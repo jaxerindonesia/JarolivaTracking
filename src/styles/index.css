@@ -1766,6 +1766,61 @@ img {
 }
 .program-start-button:hover { background: #063b7a; }
 
+/* ---- FF72 check-in, glucose, timeline and protocol ---- */
+.program-action-item { width: 100%; text-align: left; }
+.program-form-modal { position: relative; width: min(512px, 100%); max-height: 90vh; overflow-y: auto; padding: 24px; background: #fff; border-radius: 16px; box-shadow: 0 16px 42px rgba(9,15,24,.18); }
+.program-form-modal h2 { margin-bottom: 3px; font-family: var(--font-heading); font-size: 20px; }
+.program-form-modal > p { margin-bottom: 24px; color: var(--color-text-secondary); font-size: 13.5px; }
+.program-form-modal h4 { margin: 14px 0 8px; color: var(--color-text-secondary); font-size: 11.5px; }
+.condition-grid, .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.condition-grid button, .phase-grid button, .binary-fields button { min-height: 58px; color: var(--color-text-secondary); background: #fff; border: 2px solid var(--color-border); border-radius: 16px; font-size: 12px; font-weight: 600; }
+.condition-grid button span { display: block; margin-bottom: 5px; font-size: 22px; }
+.condition-grid button.selected, .phase-grid button.selected, .binary-fields button.selected { color: #4d9200; background: #f2fae9; border-color: #71cf00; }
+.water-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.water-options button { width: 38px; height: 38px; color: var(--color-text-secondary); background: #fff; border: 2px solid var(--color-border); border-radius: 50%; font-weight: 700; }
+.water-options button.selected { color: #008ed6; border-color: #00a9f4; }
+.binary-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.binary-fields > div > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.binary-fields button { min-height: 38px; }
+.modal-save-button { width: 100%; min-height: 40px; margin-top: 17px; color: #fff; background: #07458f; border-radius: 16px; font-weight: 700; }
+.modal-save-button.green { background: #71cf00; }
+.modal-save-button:disabled { cursor: not-allowed; opacity: .45; }
+.phase-grid { grid-template-columns: 1fr 1fr; }
+.phase-grid button { min-height: 40px; }
+.glucose-label { display: block; margin: 16px 0 7px; color: var(--color-text-secondary); font-size: 12px; font-weight: 600; }
+.glucose-input { width: 100%; min-height: 46px; padding: 0 14px; border: 1px solid var(--color-border); border-radius: 16px; font: inherit; }
+.point-toast { position: fixed; z-index: 1100; right: 24px; bottom: 24px; padding: 14px 18px; color: #fff; background: #07458f; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.22); font-size: 13px; }
+.fasting-timeline { padding: 22px; }
+.fasting-timeline h3, .glucose-chart-card h3, .protocol-card h3 { margin-bottom: 16px; color: #07458f; font-size: 12px; letter-spacing: .4px; }
+.fasting-milestone { position: relative; display: flex; gap: 14px; min-height: 57px; color: var(--color-text-secondary); }
+.fasting-milestone > span { z-index: 1; width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0; background: #fff; border: 2px solid #d6e0eb; border-radius: 50%; }
+.fasting-milestone:not(:last-child)::after { content: ''; position: absolute; left: 19px; top: 39px; width: 2px; height: 20px; background: #d6e0eb; }
+.fasting-milestone strong, .fasting-milestone small { display: block; }
+.fasting-milestone strong { margin-top: 3px; color: var(--color-text-primary); font-size: 14px; }
+.fasting-milestone small { margin-top: 2px; font-size: 12px; }
+.fasting-milestone.reached > span { color: #fff; background: #71cf00; border-color: #71cf00; }
+.glucose-chart-card { padding: 20px; margin-bottom: 12px; }
+.glucose-bars { height: 190px; display: flex; align-items: flex-end; gap: 12px; padding: 16px 10px 28px; border-left: 1px solid #aeb9c5; border-bottom: 1px solid #aeb9c5; }
+.glucose-bar-column { height: 100%; min-width: 52px; flex: 1; display: flex; align-items: center; justify-content: flex-end; flex-direction: column; }
+.glucose-bar-column span { width: 14px; min-height: 5px; background: #71cf00; border-radius: 8px 8px 0 0; }
+.glucose-bar-column small { position: absolute; margin-top: 182px; max-width: 70px; text-align: center; font-size: 9px; }
+.empty-data { padding: 45px 10px; text-align: center; color: var(--color-text-secondary); font-size: 13px; }
+.protocol-card { padding: 16px; }
+.protocol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.protocol-product { overflow: hidden; border: 1px solid var(--color-border); border-radius: 14px; }
+.protocol-product img { width: 100%; height: 145px; object-fit: contain; padding: 12px; background: #fff; }
+.protocol-product > div { padding: 12px; background: #e5effb; }
+.protocol-product strong, .protocol-product small, .protocol-product em { display: block; }
+.protocol-product strong { font-size: 13px; }
+.protocol-product small { min-height: 28px; color: var(--color-text-secondary); font-size: 10px; }
+.protocol-product b { display: inline-block; padding: 3px 8px; margin: 5px 0; color: #4d9200; background: #d9f5bc; border-radius: 12px; font-size: 10px; }
+.protocol-product em { color: #07458f; font-size: 10px; font-style: normal; font-weight: 700; }
+
+@media (max-width: 520px) {
+  .condition-grid { grid-template-columns: 1fr 1fr; }
+  .binary-fields, .protocol-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 520px) {
   .stop-program-modal { padding: 20px 16px; }
   .stop-reason-grid { grid-template-columns: 1fr; }
@@ -2087,8 +2142,10 @@ img {
   opacity: .45;
 }
 
-/* Tampilan target belum memiliki riwayat kondisi terakhir. */
-.program-page .tabs + .fade-in > div:has(.condition-card) { display: none; }
+.last-condition-history { margin-bottom: 10px; }
+.last-condition-history .condition-card { min-height: 84px; margin-bottom: 12px; }
+.condition-text .condition-history-label { margin-bottom: 2px; color: var(--color-text-secondary); font-size: 12px; }
+.condition-text .condition-history-date { margin-top: 3px; font-size: 11px; }
 
 /* ---- Responsive ---- */
 

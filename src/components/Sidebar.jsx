@@ -19,13 +19,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '15px', fontWeight: 800, letterSpacing: '0.5px' }}>J</span>
-        </div>
-        <div className="sidebar-logo-text">
-          <span className="sidebar-logo-name">JAXLAB</span>
-          <span className="sidebar-logo-sub">Member Area</span>
-        </div>
+        <img className="sidebar-logo-image" src="/jaxlab-logo.png" alt="JAXLAB+" />
       </div>
 
       {/* Nav */}

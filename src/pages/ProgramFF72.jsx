@@ -1,33 +1,67 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronRight, AlertTriangle, X, Square, Phone } from 'lucide-react'
+import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import { activeSession, checkins, glucoseLogs, products, consumptionLog } from '../data/mockData'
 
 const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
+const STORAGE_KEY = 'jaxlab-ff72-session'
+
+const toDateTimeLocal = (date) => {
+  const offset = date.getTimezoneOffset() * 60000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+}
+
+const getSavedSession = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY))
+  } catch {
+    return null
+  }
+}
 
 export default function ProgramFF72() {
+  const savedSession = getSavedSession()
   const [activeTab, setActiveTab] = useState('Tracker')
   const [showStopModal, setShowStopModal] = useState(false)
   const [stopReason, setStopReason] = useState('')
-  const [isProgramStopped, setIsProgramStopped] = useState(false)
-  const timer = useFastingTimer(activeSession.start_time, activeSession.target_hours)
+  const [programStatus, setProgramStatus] = useState(savedSession?.status || 'active')
+  const [sessionStart, setSessionStart] = useState(savedSession?.startTime || activeSession.start_time)
+  const [stoppedAt, setStoppedAt] = useState(savedSession?.stoppedAt || null)
+  const [selectedStart, setSelectedStart] = useState(toDateTimeLocal(new Date()))
+  const timer = useFastingTimer(sessionStart, activeSession.target_hours, stoppedAt)
   const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
 
   const stopProgram = () => {
     if (!stopReason) return
+    const stoppedTime = new Date().toISOString()
+    setStoppedAt(stoppedTime)
+    setProgramStatus('stopped')
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      status: 'stopped', startTime: sessionStart, stoppedAt: stoppedTime, stopReason
+    }))
     setShowStopModal(false)
-    setIsProgramStopped(true)
   }
 
   const startNewProgram = () => {
     setStopReason('')
     setActiveTab('Tracker')
-    setIsProgramStopped(false)
+    setStoppedAt(null)
+    setSelectedStart(toDateTimeLocal(new Date()))
+    setProgramStatus('setup')
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ status: 'setup' }))
   }
 
-  if (isProgramStopped) {
+  const activateProgram = () => {
+    const startTime = new Date(selectedStart).toISOString()
+    setSessionStart(startTime)
+    setStoppedAt(null)
+    setProgramStatus('active')
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ status: 'active', startTime }))
+  }
+
+  if (programStatus === 'stopped') {
     return (
       <div className="program-page program-stopped-page fade-in">
         <div className="page-header">
@@ -39,10 +73,63 @@ export default function ProgramFF72() {
           <div className="program-stopped-emoji" aria-hidden="true">💪</div>
           <h2>Program Dihentikan</h2>
           <p>Tidak apa-apa. Istirahat dulu, dan coba lagi saat tubuh sudah siap.</p>
+          <p className="program-stopped-duration">
+            Durasi puasa: <strong>{timer.timeString}</strong>
+          </p>
         </section>
 
         <button className="program-restart-button" type="button" onClick={startNewProgram}>
           Mulai Program Baru
+        </button>
+      </div>
+    )
+  }
+
+  if (programStatus === 'setup') {
+    const finishTime = new Date(new Date(selectedStart).getTime() + activeSession.target_hours * 3600000)
+
+    return (
+      <div className="program-page program-setup-page fade-in">
+        <div className="page-header">
+          <h1 className="page-title">Program FF72</h1>
+          <p className="page-subtitle">Fat Fasting 72 Jam JaxLab</p>
+        </div>
+
+        <section className="program-setup-hero">
+          <Zap size={42} />
+          <h2>Fat Fasting 72 Jam</h2>
+          <p>Anda akan memulai perjalanan 3 hari penuh. Asisten digital JaxLab akan menemani setiap langkah Anda.</p>
+        </section>
+
+        <section className="program-setup-card">
+          <h3><CalendarDays size={20} /> Pilih Waktu Mulai</h3>
+          <label htmlFor="ff72-start-time">Tanggal &amp; Jam Mulai</label>
+          <input
+            id="ff72-start-time"
+            type="datetime-local"
+            value={selectedStart}
+            onChange={(event) => setSelectedStart(event.target.value)}
+          />
+          <p className="program-finish-info">
+            Program akan selesai pada: <strong>{finishTime.toLocaleString('id-ID', {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })}</strong>
+          </p>
+        </section>
+
+        <section className="program-setup-card program-ready-card">
+          <h3>Pastikan Anda Sudah Siap:</h3>
+          {[
+            'Sudah menyelesaikan Screening Kesehatan',
+            'Air mineral tersedia minimal 2 liter/hari',
+            'Produk JaxLab (Olive Oil, VCO, C8 Oil) tersedia',
+            'Tidak ada aktivitas berat yang direncanakan',
+          ].map((item) => <p key={item}><CheckCircle2 size={16} /> {item}</p>)}
+        </section>
+
+        <button className="program-start-button" type="button" onClick={activateProgram}>
+          <Zap size={18} /> Mulai Fat Fasting Sekarang
         </button>
       </div>
     )
@@ -63,7 +150,7 @@ export default function ProgramFF72() {
           Program Aktif
         </div>
         <div className="status-banner-right">
-          Mulai: {new Date(activeSession.start_time).toLocaleDateString('id-ID', {
+          Mulai: {new Date(sessionStart).toLocaleDateString('id-ID', {
             day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
           })}
         </div>

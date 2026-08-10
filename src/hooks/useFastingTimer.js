@@ -4,21 +4,27 @@ import { useState, useEffect } from 'react'
  * useFastingTimer — custom hook
  * Returns live elapsed seconds from a given start timestamp
  */
-export function useFastingTimer(startIso, targetHours = 72) {
+export function useFastingTimer(startIso, targetHours = 72, endIso = null) {
   const startMs = new Date(startIso).getTime()
   const targetMs = targetHours * 60 * 60 * 1000
 
   const getElapsed = () => {
-    const now = Date.now()
-    return Math.max(0, now - startMs)
+    const endMs = endIso ? new Date(endIso).getTime() : Date.now()
+    return Math.max(0, endMs - startMs)
   }
 
   const [elapsed, setElapsed] = useState(getElapsed)
 
   useEffect(() => {
+    setElapsed(getElapsed())
+
+    // Once an end time exists, keep the last duration fixed and do not
+    // create another interval that would continue advancing the timer.
+    if (endIso) return undefined
+
     const id = setInterval(() => setElapsed(getElapsed()), 1000)
     return () => clearInterval(id)
-  }, [startIso])
+  }, [startIso, endIso])
 
   const totalSeconds = Math.floor(elapsed / 1000)
   const hours = Math.floor(totalSeconds / 3600)

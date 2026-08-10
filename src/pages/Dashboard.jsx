@@ -1,7 +1,8 @@
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Bell, Zap, ChevronRight, Activity, Heart, Package,
-  PlayCircle, Users, Flame, Star, Droplets
+  PlayCircle, Users, Flame, Star, Droplets, CheckCircle2
 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
@@ -20,6 +21,31 @@ export default function Dashboard() {
   const timer = useFastingTimer(sessionStart, activeSession.target_hours, sessionEnd)
   const currentDay = Math.min(3, Math.max(1, Math.floor(timer.hours / 24) + 1))
   const isConsumptionDue = useConsumptionSchedule()
+  const [showNotifications, setShowNotifications] = useState(false)
+  const notificationRef = useRef(null)
+  const dueConsumptions = consumptionLog.filter((item) => isConsumptionDue(item.time))
+  const todayKey = new Date().toLocaleDateString('en-CA')
+  const notificationStorageKey = `jaxlab-consumption-notifications-${todayKey}`
+  const [readNotifications, setReadNotifications] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(notificationStorageKey)) || [] } catch { return [] }
+  })
+  const unreadConsumptions = dueConsumptions.filter((item) => !readNotifications.includes(item.id))
+  const openConsumptionReminder = (item) => {
+    const nextRead = readNotifications.includes(item.id) ? readNotifications : [...readNotifications, item.id]
+    setReadNotifications(nextRead)
+    localStorage.setItem(notificationStorageKey, JSON.stringify(nextRead))
+    setShowNotifications(false)
+    window.setTimeout(() => document.querySelector('.consumption-list-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
+  }
+
+  useEffect(() => {
+    if (!showNotifications) return undefined
+    const closeOnOutsideClick = (event) => {
+      if (!notificationRef.current?.contains(event.target)) setShowNotifications(false)
+    }
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
+  }, [showNotifications])
 
   return (
     <div className="fade-in">
@@ -32,10 +58,22 @@ export default function Dashboard() {
             Program sedang berjalan. Tetap semangat! 🔥
           </p>
         </div>
-        <div className="top-bar-actions">
-          <button className="icon-btn" aria-label="Notifikasi">
-            <Bell size={18} />
-          </button>
+        <div className="top-bar-actions dashboard-notification-wrap">
+          <div className="notification-trigger" ref={notificationRef}>
+            <button className={`icon-btn notification-bell${unreadConsumptions.length ? ' has-notification' : ''}`} aria-label={`${unreadConsumptions.length} notifikasi konsumsi belum dibaca`} aria-expanded={showNotifications} onClick={() => setShowNotifications((open) => !open)}>
+              <Bell size={18} />
+              {unreadConsumptions.length > 0 && <span className="notification-count">{unreadConsumptions.length}</span>}
+            </button>
+            {showNotifications && <div className="notification-panel">
+              <header><div><strong>Pengingat Konsumsi</strong><span>Jadwal hari ini</span></div><Bell size={18} /></header>
+              <div className="notification-list">
+                {unreadConsumptions.length ? [...unreadConsumptions].reverse().map((item, index) => <button className="notification-item" key={item.id} onClick={() => openConsumptionReminder(item)}>
+                  <span className="notification-item-icon">{item.emoji}</span>
+                  <div><strong>Waktunya konsumsi {item.meal}</strong><p>{item.items}</p><small>{item.time}{index === 0 ? ' · Pengingat terbaru' : ''}</small></div>
+                </button>) : <div className="notification-empty"><CheckCircle2 size={24} /><p>Semua pengingat sudah dibuka.</p></div>}
+              </div>
+            </div>}
+          </div>
           <button className="icon-btn" aria-label="Poin"
             onClick={() => navigate('/reward')}
             style={{ background: 'var(--color-navy)', border: 'none', color: 'white' }}>
@@ -264,6 +302,15 @@ export default function Dashboard() {
               <small>Total Poin</small>
             </span>
           </button>
+          {false && <><button className="notification-backdrop" aria-label="Tutup notifikasi" onClick={() => setShowNotifications(false)} /><div className="notification-panel">
+            <header><div><strong>Pengingat Konsumsi</strong><span>Jadwal hari ini</span></div><Bell size={18} /></header>
+            <div className="notification-list">
+              {unreadConsumptions.length ? [...unreadConsumptions].reverse().map((item, index) => <button className="notification-item" key={item.id} onClick={() => openConsumptionReminder(item)}>
+                <span className="notification-item-icon">{item.emoji}</span>
+                <div><strong>Waktunya konsumsi {item.meal}</strong><p>{item.items}</p><small>{item.time}{index === 0 ? ' · Pengingat terbaru' : ''}</small></div>
+              </button>) : <div className="notification-empty"><CheckCircle2 size={24} /><p>Semua pengingat sudah dibuka.</p></div>}
+            </div>
+          </div></>}
         </div>
       </div>
     </div>

@@ -12,15 +12,15 @@ import {
   products, consumptionLog
 } from '../data/mockData'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../lib/api'
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  let storedSession = null
-  try { storedSession = JSON.parse(localStorage.getItem('jaxlab-ff72-session')) } catch { storedSession = null }
-  const sessionStart = storedSession?.startTime || activeSession.start_time
-  const sessionEnd = storedSession?.stoppedAt || null
-  const timer = useFastingTimer(sessionStart, activeSession.target_hours, sessionEnd)
+  const [dashboardSession, setDashboardSession] = useState(null)
+  const isProgramActive = dashboardSession?.status === 'active'
+  const sessionStart = dashboardSession?.start_time || '1970-01-01T00:00:00.000Z'
+  const timer = useFastingTimer(sessionStart, activeSession.target_hours, isProgramActive ? null : sessionStart)
   const currentDay = Math.min(3, Math.max(1, Math.floor(timer.hours / 24) + 1))
   const isConsumptionDue = useConsumptionSchedule()
   const [showNotifications, setShowNotifications] = useState(false)
@@ -32,6 +32,9 @@ export default function Dashboard() {
     try { return JSON.parse(localStorage.getItem(notificationStorageKey)) || [] } catch { return [] }
   })
   const unreadConsumptions = dueConsumptions.filter((item) => !readNotifications.includes(item.id))
+  useEffect(() => {
+    api('/program').then((data) => setDashboardSession(data.session)).catch(() => setDashboardSession(null))
+  }, [])
   const openConsumptionReminder = (item) => {
     const nextRead = readNotifications.includes(item.id) ? readNotifications : [...readNotifications, item.id]
     setReadNotifications(nextRead)
@@ -57,7 +60,7 @@ export default function Dashboard() {
           <p className="page-greeting">Selamat datang kembali 👋</p>
           <h1 className="page-title">Hi, {user.name}!</h1>
           <p className="page-subtitle">
-            Program sedang berjalan. Tetap semangat! 🔥
+            {isProgramActive ? 'Program sedang berjalan. Tetap semangat! 🔥' : 'Program FF72 sedang tidak aktif.'}
           </p>
         </div>
         <div className="top-bar-actions dashboard-notification-wrap">
@@ -87,14 +90,14 @@ export default function Dashboard() {
       {/* Fasting Hero Card */}
       <div className="fasting-hero fade-in fade-in-delay-1">
         <div className="fasting-hero-header">
-          <div className="fasting-status-badge">
+          <div className={`fasting-status-badge${isProgramActive ? '' : ' inactive'}`}>
             <span style={{
               width: 6, height: 6, borderRadius: '50%',
-            background: '#71cf00', display: 'inline-block'
+            background: isProgramActive ? '#71cf00' : '#a7b3c2', display: 'inline-block'
             }} />
-            SEDANG BERJALAN
+            {isProgramActive ? 'SEDANG BERJALAN' : 'PROGRAM BERHENTI'}
           </div>
-          <div className="fasting-day-badge">Day {currentDay} of 3</div>
+          <div className="fasting-day-badge">{isProgramActive ? `Day ${currentDay} of 3` : 'Tidak aktif'}</div>
         </div>
 
         <div className="fasting-hero-body">
@@ -104,7 +107,7 @@ export default function Dashboard() {
               size={110}
               strokeWidth={9}
               percentage={timer.percentage}
-              color="#71cf00"
+              color={isProgramActive ? '#71cf00' : '#a7b3c2'}
               trackColor="rgba(255,255,255,0.16)"
             >
               <div className="timer-label">Fasting Time</div>
@@ -117,13 +120,13 @@ export default function Dashboard() {
           <div style={{ flex: 1 }}>
             <h2 className="fasting-hero-title">FF72 Challenge</h2>
             <p className="fasting-hero-desc">
-              Anda sedang berjalan {timer.hours}j {timer.minutes}m. Jaga konsumsi lemak sehat!
+              {isProgramActive ? `Anda sedang berjalan ${timer.hours}j ${timer.minutes}m. Jaga konsumsi lemak sehat!` : 'Timer telah dihentikan dan kembali ke 00:00:00.'}
             </p>
             <button
               className="btn-program"
               onClick={() => navigate('/program')}
             >
-              <Zap size={15} /> Lihat Program Aktif 🔥
+              <Zap size={15} /> {isProgramActive ? 'Lihat Program Aktif 🔥' : 'Mulai Program FF72'}
             </button>
           </div>
         </div>

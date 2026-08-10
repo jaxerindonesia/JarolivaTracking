@@ -1821,6 +1821,23 @@ img {
 .protocol-product small { min-height: 28px; color: var(--color-text-secondary); font-size: 10px; }
 .protocol-product b { display: inline-block; padding: 3px 8px; margin: 5px 0; color: #4d9200; background: #d9f5bc; border-radius: 12px; font-size: 10px; }
 .protocol-product em { color: #07458f; font-size: 10px; font-style: normal; font-weight: 700; }
+.protocol-product i { display: block; margin-top: 5px; color: #e66a00; font-size: 9px; }
+.protocol-schedule-card { padding: 20px; margin-top: 16px; }
+.protocol-schedule-card h3 { margin-bottom: 15px; color: #07458f; font-size: 12px; }
+.protocol-schedule { margin-bottom: 15px; }
+.protocol-schedule p, .protocol-hydration { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; color: var(--color-text-secondary); font-size: 11px; }
+.protocol-schedule p > b, .protocol-hydration b { min-width: 50px; padding: 5px 9px; color: #fff; background: #07458f; border-radius: 14px; text-align: center; font-size: 10px; }
+.protocol-schedule p > b.lime { background: #71cf00; }
+.protocol-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+.protocol-pills span { padding: 6px 10px; color: #0b1c31; background: #e8f1fb; border: 1px solid #d5e1ee; border-radius: 15px; font-size: 10px; }
+.protocol-schedule > em { display: block; margin-top: 6px; color: #e66a00; font-size: 9px; }
+.protocol-hydration { margin: 3px 0 8px; }
+.protocol-hydration b { background: #00a7e7; }
+.protocol-water-note { color: var(--color-text-primary); font-size: 11px; line-height: 1.55; }
+.protocol-important { padding: 16px 18px; margin-top: 16px; color: #bd5900; background: #fff9e8; border: 1px solid #f0cb57; border-radius: 16px; font-size: 11px; }
+.protocol-important strong { display: block; margin-bottom: 6px; }
+.protocol-important ul { padding-left: 15px; }
+.protocol-important li { margin-top: 5px; line-height: 1.45; }
 
 @media (max-width: 520px) {
   .condition-grid { grid-template-columns: 1fr 1fr; }
@@ -2183,7 +2200,22 @@ img {
 /* ---- Reward reference layout ---- */
 .reward-page .reward-total-card { padding: 24px; background: linear-gradient(135deg, #0750a0, #063a78); border-radius: 22px; }
 .reward-total-card h3 { color: #a9d2ff; font: 700 11px var(--font-body); letter-spacing: .7px; }
-.reward-page .reward-level-badge { display: flex; align-items: center; gap: 5px; color: #bd5b00; background: #fff1d5; }
+.reward-page .reward-level-badge {
+  position: absolute;
+  z-index: 1;
+  top: 24px;
+  right: 24px;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  margin: 0;
+  color: #bd5b00;
+  background: #fff1d5;
+  border-color: rgba(189,91,0,.12);
+  white-space: nowrap;
+}
 .reward-page .reward-level-range { display: flex; justify-content: space-between; color: rgba(255,255,255,.66); font-size: 10px; }
 .reward-page .reward-progress-bar { margin-top: 7px; }
 .reward-page .reward-meta-row { margin-top: 25px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); background: transparent; }

@@ -401,10 +401,34 @@ export default function ProgramFF72() {
           <div className="card protocol-card"><h3>PRODUK YANG DIKONSUMSI</h3><div className="protocol-grid">
             {products.map((p) => <div className="protocol-product" key={p.id}>
               <img src={p.img} alt={p.name} />
-              <div><strong>{p.name}</strong><small>{p.id === 1 ? 'Extra Virgin Olive Oil' : p.id === 2 ? 'Virgin Coconut Oil' : 'Produk FF72 JaxLab'}</small>
-                <b>{p.qty}</b><em>08.00 · 13.00 · 18.30</em></div>
+              <div><strong>{p.name}</strong><small>{p.id === 1 ? 'Extra Virgin Olive Oil' : p.id === 2 ? 'Virgin Coconut Oil' : p.id === 3 ? 'Coconut Oil Blend' : p.id === 4 ? 'Medium Chain Triglycerides' : 'Grass-fed Ghee'}</small>
+                <b>{p.qty}</b><em>{p.id === 5 ? 'Alternatif C8 Oil' : '08.00 · 13.00 · 18.30'}</em>{p.id === 5 && <i>Untuk yang punya GERD</i>}</div>
             </div>)}
           </div></div>
+
+          <section className="card protocol-schedule-card">
+            <h3>JADWAL KONSUMSI</h3>
+            {[
+              ['08.00', 'Sahur · Saat perut kosong'],
+              ['13.00', 'Siang · Saat perut kosong'],
+              ['18.30', 'Sore · Saat perut kosong'],
+            ].map(([time, detail], index) => <div className="protocol-schedule" key={time}>
+              <p><b className={index === 1 ? 'lime' : ''}>{time}</b><span>{detail}</span></p>
+              <div className="protocol-pills"><span>Jaroliva</span><span>Cocofenol</span><span>Ketone Immuno</span><span>Max C8 / Ghee</span></div>
+              {index === 1 && <em>* Berat badan berlebih: lewati sesi ini</em>}
+            </div>)}
+            <div className="protocol-hydration"><b>08 · 14 · 22</b><span>Hidrasi wajib</span></div>
+            <p className="protocol-water-note">Air putih atau teh herbal tanpa kalori. Boleh tambahkan sedikit garam (bila TD normal).</p>
+          </section>
+
+          <aside className="protocol-important">
+            <strong>⚠️ Catatan Penting</strong>
+            <ul>
+              <li>C8 Oil bisa diganti Vanilla Ghee untuk yang punya GERD atau lambung sensitif.</li>
+              <li>Vanilla Ghee bisa langsung dikonsumsi tanpa dicampur.</li>
+              <li>Semakin rendah berat badan, dosis minyak bisa lebih tinggi.</li>
+            </ul>
+          </aside>
         </div>
       )}
 

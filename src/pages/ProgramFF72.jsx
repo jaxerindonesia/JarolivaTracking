@@ -11,11 +11,45 @@ export default function ProgramFF72() {
   const [activeTab, setActiveTab] = useState('Tracker')
   const [showStopModal, setShowStopModal] = useState(false)
   const [stopReason, setStopReason] = useState('')
+  const [isProgramStopped, setIsProgramStopped] = useState(false)
   const timer = useFastingTimer(activeSession.start_time, activeSession.target_hours)
   const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
 
+  const stopProgram = () => {
+    if (!stopReason) return
+    setShowStopModal(false)
+    setIsProgramStopped(true)
+  }
+
+  const startNewProgram = () => {
+    setStopReason('')
+    setActiveTab('Tracker')
+    setIsProgramStopped(false)
+  }
+
+  if (isProgramStopped) {
+    return (
+      <div className="program-page program-stopped-page fade-in">
+        <div className="page-header">
+          <h1 className="page-title">Program FF72</h1>
+          <p className="page-subtitle">Fat Fasting 72 Jam JaxLab</p>
+        </div>
+
+        <section className="program-stopped-card">
+          <div className="program-stopped-emoji" aria-hidden="true">💪</div>
+          <h2>Program Dihentikan</h2>
+          <p>Tidak apa-apa. Istirahat dulu, dan coba lagi saat tubuh sudah siap.</p>
+        </section>
+
+        <button className="program-restart-button" type="button" onClick={startNewProgram}>
+          Mulai Program Baru
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="fade-in">
+    <div className="program-page fade-in">
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">Program FF72</h1>
@@ -36,7 +70,7 @@ export default function ProgramFF72() {
       </div>
 
       {/* Large Timer Card */}
-      <div className="card fade-in fade-in-delay-2" style={{ padding: '32px 24px', textAlign: 'center', marginBottom: 24 }}>
+      <div className="program-timer-card card fade-in fade-in-delay-2" style={{ padding: '32px 24px', textAlign: 'center', marginBottom: 24 }}>
         <CircularProgress
           size={200}
           strokeWidth={14}
@@ -288,7 +322,11 @@ export default function ProgramFF72() {
               <button className="stop-continue-button" onClick={() => setShowStopModal(false)}>
                 Tetap Lanjutkan
               </button>
-              <button className="stop-confirm-button">
+              <button
+                className="stop-confirm-button"
+                disabled={!stopReason}
+                onClick={stopProgram}
+              >
                 <Phone size={16} /> Hentikan
               </button>
             </div>

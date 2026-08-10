@@ -3,6 +3,8 @@ import {
   LayoutDashboard, Flame, Stethoscope, TrendingUp,
   Gift, Users, User, Zap
 } from 'lucide-react'
+import { LogOut } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const navItems = [
   { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -15,6 +17,7 @@ const navItems = [
 ]
 
 export default function Sidebar() {
+  const { logout } = useAuth()
   return (
     <aside className="sidebar">
       {/* Logo */}
@@ -35,6 +38,8 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      <button className="sidebar-logout" onClick={logout}><LogOut size={17} /> Keluar</button>
 
       {/* Tip */}
       <div className="sidebar-tip">

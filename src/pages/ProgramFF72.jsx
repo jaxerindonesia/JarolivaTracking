@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2, Clock3 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import { activeSession, products } from '../data/mockData'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { api } from '../lib/api'
 
 const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
 const STORAGE_KEY = 'jaxlab-ff72-session'
@@ -49,6 +50,7 @@ export default function ProgramFF72() {
   const [glucosePhase, setGlucosePhase] = useState('Sebelum Mulai')
   const [glucoseValue, setGlucoseValue] = useState('')
   const [pointNotice, setPointNotice] = useState(false)
+  const [sessionId, setSessionId] = useState(null)
   const timer = useFastingTimer(sessionStart, activeSession.target_hours, stoppedAt)
   const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
   const conditions = [
@@ -62,30 +64,43 @@ export default function ProgramFF72() {
     return { phase, value: phaseLogs.at(-1)?.value ?? fallback }
   })
 
-  const saveCheckin = () => {
+  useEffect(() => {
+    api('/program').then((data) => {
+      if (data.session) {
+        setSessionId(data.session.id); setSessionStart(data.session.start_time)
+        setStoppedAt(data.session.end_time); setProgramStatus(data.session.status)
+      } else setProgramStatus('setup')
+      setSavedCheckins(data.checkins.map((item) => ({ ...item, waterGlasses: item.water_glasses, jarolivaTaken: item.jaroliva_taken ? 'Ya' : 'Tidak' })))
+      setSavedGlucose(data.glucose)
+    }).catch(() => {})
+  }, [])
+
+  const saveCheckin = async () => {
     if (!condition || !jarolivaTaken || !followedProtocol) return
     const selected = conditions.find((item) => item.label === condition)
-    const entry = { id: Date.now(), condition, emoji: selected.emoji, waterGlasses, jarolivaTaken, followedProtocol, created_at: new Date().toISOString() }
+    const saved = await api('/checkins', { method: 'POST', body: JSON.stringify({ sessionId, condition, emoji: selected.emoji, waterGlasses, jarolivaTaken: jarolivaTaken === 'Ya', followedProtocol: followedProtocol === 'Ya' }) })
+    const entry = { ...saved, waterGlasses: saved.water_glasses, jarolivaTaken: saved.jaroliva_taken ? 'Ya' : 'Tidak' }
     const next = [entry, ...savedCheckins]
     setSavedCheckins(next)
     localStorage.setItem(CHECKINS_KEY, JSON.stringify(next))
-    localStorage.setItem(POINTS_KEY, String(Number(localStorage.getItem(POINTS_KEY) || 0) + 10))
     setShowCheckinModal(false); setPointNotice(true)
     setTimeout(() => setPointNotice(false), 2600)
     setCondition(''); setWaterGlasses(0); setJarolivaTaken(''); setFollowedProtocol('')
   }
 
-  const saveGlucose = () => {
+  const saveGlucose = async () => {
     const value = Number(glucoseValue)
     if (!value || value < 20 || value > 600) return
-    const next = [...savedGlucose, { id: Date.now(), value, unit: 'mg/dL', phase: glucosePhase, logged_at: new Date().toISOString() }]
+    const saved = await api('/glucose', { method: 'POST', body: JSON.stringify({ sessionId, phase: glucosePhase, value }) })
+    const next = [...savedGlucose, saved]
     setSavedGlucose(next); localStorage.setItem(GLUCOSE_KEY, JSON.stringify(next))
     setGlucoseValue(''); setShowGlucoseModal(false)
   }
 
-  const stopProgram = () => {
+  const stopProgram = async () => {
     if (!stopReason) return
-    const stoppedTime = new Date().toISOString()
+    const saved = await api('/program/stop', { method: 'POST', body: JSON.stringify({ sessionId, reason: stopReason }) })
+    const stoppedTime = saved.end_time
     setStoppedAt(stoppedTime)
     setProgramStatus('stopped')
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -103,8 +118,10 @@ export default function ProgramFF72() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ status: 'setup' }))
   }
 
-  const activateProgram = () => {
+  const activateProgram = async () => {
     const startTime = new Date(selectedStart).toISOString()
+    const saved = await api('/program/start', { method: 'POST', body: JSON.stringify({ startTime }) })
+    setSessionId(saved.id)
     setSessionStart(startTime)
     setStoppedAt(null)
     setProgramStatus('active')

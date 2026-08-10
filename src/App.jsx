@@ -7,12 +7,21 @@ import Progress from './pages/Progress'
 import Reward from './pages/Reward'
 import Komunitas from './pages/Komunitas'
 import Profil from './pages/Profil'
+import Login from './pages/Login'
+import { useAuth } from './context/AuthContext'
+
+function ProtectedLayout() {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="auth-loading">Memuat...</div>
+  return user ? <Layout /> : <Navigate to="/login" replace />
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<ProtectedLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="program" element={<ProgramFF72 />} />

@@ -1,12 +1,14 @@
 import { CheckCircle2, Lock, Medal, Star, Trophy, Zap } from 'lucide-react'
 import { rewardData, badges } from '../data/mockData'
+import { useEffect, useState } from 'react'
+import { api } from '../lib/api'
 
 const pointWays = [['🩺', 'Screening Kesehatan', 'Selesaikan 1x', '+50 poin'], ['⏰', 'Milestone 24 Jam', 'Per sesi aktif', '+100 poin'], ['🔥', 'Milestone 48 Jam', 'Per sesi aktif', '+150 poin'], ['🏆', 'Selesaikan FF72', 'Per sesi selesai', '+500 poin']]
 const tiers = [['🌱', 'Starter', '0 – 499 poin'], ['🥉', 'Bronze', '500 – 999 poin'], ['🥈', 'Silver', '1,000 – 2,999 poin'], ['🥇', 'Gold', '3,000 – 9,999 poin'], ['💎', 'Platinum', '10,000+ poin']]
 
 export default function Reward() {
-  const basePoints = rewardData.total_points
-  const totalPoints = basePoints + Number(localStorage.getItem('jaxlab-reward-points') || 0)
+  const [totalPoints, setTotalPoints] = useState(rewardData.total_points)
+  useEffect(() => { api('/me').then((user) => setTotalPoints(user.points)).catch(() => {}) }, [])
   const currentTier = totalPoints >= 10000 ? 'Platinum' : totalPoints >= 3000 ? 'Gold' : totalPoints >= 1000 ? 'Silver' : totalPoints >= 500 ? 'Bronze' : 'Starter'
   const nextTarget = currentTier === 'Starter' ? 500 : currentTier === 'Bronze' ? 1000 : currentTier === 'Silver' ? 3000 : currentTier === 'Gold' ? 10000 : totalPoints
   const progress = currentTier === 'Platinum' ? 100 : Math.min(100, totalPoints / nextTarget * 100)

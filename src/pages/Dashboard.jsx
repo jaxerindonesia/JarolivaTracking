@@ -8,12 +8,14 @@ import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import { useConsumptionSchedule } from '../hooks/useConsumptionSchedule'
 import {
-  currentUser, activeSession, userStats,
+  activeSession, userStats,
   products, consumptionLog
 } from '../data/mockData'
+import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   let storedSession = null
   try { storedSession = JSON.parse(localStorage.getItem('jaxlab-ff72-session')) } catch { storedSession = null }
   const sessionStart = storedSession?.startTime || activeSession.start_time
@@ -53,7 +55,7 @@ export default function Dashboard() {
       <div className="top-bar">
         <div>
           <p className="page-greeting">Selamat datang kembali 👋</p>
-          <h1 className="page-title">Hi, {currentUser.name}!</h1>
+          <h1 className="page-title">Hi, {user.name}!</h1>
           <p className="page-subtitle">
             Program sedang berjalan. Tetap semangat! 🔥
           </p>

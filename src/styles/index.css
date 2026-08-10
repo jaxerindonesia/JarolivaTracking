@@ -1844,6 +1844,29 @@ img {
   .binary-fields, .protocol-grid { grid-template-columns: 1fr; }
 }
 
+/* ---- Authentication ---- */
+.auth-loading, .login-page { min-height: 100vh; display: grid; place-items: center; background: #eef3f9; }
+.login-card { width: min(420px, calc(100% - 32px)); padding: 32px; background: #fff; border: 1px solid #d6e0eb; border-radius: 22px; box-shadow: 0 18px 50px rgba(6,54,124,.12); }
+.login-card > img { display: block; width: 180px; height: 55px; margin: 0 auto 24px; object-fit: contain; }
+.login-card h1 { text-align: center; font-family: var(--font-heading); font-size: 25px; }
+.login-card > p { margin: 7px 0 24px; text-align: center; color: var(--color-text-secondary); font-size: 13px; }
+.login-card label { display: block; margin-top: 13px; color: var(--color-text-secondary); font-size: 12px; font-weight: 600; }
+.login-card input { width: 100%; min-height: 45px; padding: 0 13px; margin-top: 6px; border: 1px solid #cfdae6; border-radius: 12px; font: inherit; }
+.login-card form > button { width: 100%; min-height: 45px; margin-top: 20px; color: #fff; background: #00367c; border-radius: 12px; font-weight: 700; }
+.login-card form > button:disabled { opacity: .6; }
+.login-error { padding: 10px 12px; margin-top: 13px; color: #b4232d; background: #fff0f2; border-radius: 10px; font-size: 12px; }
+.login-switch { width: 100%; margin-top: 16px; color: #0750a0; font-size: 12px; font-weight: 600; }
+.sidebar-logout { display: flex; align-items: center; gap: 10px; margin: 0 12px 10px; padding: 11px 12px; color: rgba(255,255,255,.68); border-radius: 10px; font-size: 13px; }
+.sidebar-logout:hover { color: #fff; background: rgba(255,255,255,.08); }
+.profile-edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px; }
+.profile-edit-form label { color: #61758d; font-size: 11px; font-weight: 600; }
+.profile-edit-form input, .profile-edit-form select { width: 100%; min-height: 42px; padding: 0 12px; margin-top: 6px; color: #12243a; background: #fff; border: 1px solid #cfdae6; border-radius: 11px; font: inherit; }
+.profile-edit-form input:disabled { background: #eef3f8; }
+.profile-edit-error { grid-column: 1 / -1; padding: 9px 12px; color: #b4232d; background: #fff0f2; border-radius: 9px; font-size: 11px; }
+.profile-save-button { grid-column: 1 / -1; min-height: 43px; color: #fff; background: #0750a0; border-radius: 12px; font-weight: 700; }
+.profile-save-button:disabled { opacity: .6; }
+@media (max-width: 520px) { .profile-edit-form { grid-template-columns: 1fr; }.profile-edit-form > * { grid-column: 1; } }
+
 @media (max-width: 520px) {
   .stop-program-modal { padding: 20px 16px; }
   .stop-reason-grid { grid-template-columns: 1fr; }

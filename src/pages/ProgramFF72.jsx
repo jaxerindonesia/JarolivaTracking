@@ -4,6 +4,7 @@ import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, Check
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import { activeSession, products } from '../data/mockData'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
 const STORAGE_KEY = 'jaxlab-ff72-session'
@@ -55,6 +56,11 @@ export default function ProgramFF72() {
     { label: 'Lapar', emoji: '😋' }, { label: 'Pusing', emoji: '😣' },
     { label: 'Lemas', emoji: '😵' }, { label: 'Mual', emoji: '🤢' },
   ]
+  const glucoseDefaults = { 'Sebelum Mulai': 100, 'Hari ke-2 (opsional)': 110, 'Hari ke-3': 90, 'Setelah Selesai': 70 }
+  const glucoseChartData = Object.entries(glucoseDefaults).map(([phase, fallback]) => {
+    const phaseLogs = savedGlucose.filter((log) => log.phase === phase)
+    return { phase, value: phaseLogs.at(-1)?.value ?? fallback }
+  })
 
   const saveCheckin = () => {
     if (!condition || !jarolivaTaken || !followedProtocol) return
@@ -342,14 +348,20 @@ export default function ProgramFF72() {
         <div className="fade-in">
           <div className="card glucose-chart-card">
             <h3>GRAFIK GULA DARAH</h3>
-            {savedGlucose.length ? <div className="glucose-bars">
-              {savedGlucose.map((log) => <div className="glucose-bar-column" key={log.id}>
-                <span style={{ height: `${Math.min(100, log.value / 1.6)}%` }} title={`${log.value} mg/dL`} />
-                <small>{log.phase}</small>
-              </div>)}
-            </div> : <p className="empty-data">Belum ada catatan gula darah.</p>}
+            <div className="glucose-line-chart"><ResponsiveContainer width="100%" height="100%">
+              <LineChart data={glucoseChartData} margin={{ top: 6, right: 2, left: -22, bottom: 2 }}>
+                <CartesianGrid stroke="#d6e1ec" strokeDasharray="3 3" />
+                <XAxis dataKey="phase" tick={{ fill: '#566a80', fontSize: 9 }} tickLine={false} axisLine={{ stroke: '#aebbc9' }} interval={0} />
+                <YAxis domain={[0, 120]} ticks={[0, 30, 60, 90, 120]} tick={{ fill: '#566a80', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <Tooltip formatter={(value) => [`${value} mg/dL`, 'Gula darah']} contentStyle={{ border: '1px solid #d1dce8', borderRadius: 10, fontSize: 11 }} />
+                <Line type="monotone" dataKey="value" stroke="#62bd00" strokeWidth={2.5} dot={{ r: 5, fill: '#62bd00', strokeWidth: 0 }} activeDot={{ r: 7 }} />
+              </LineChart>
+            </ResponsiveContainer></div>
           </div>
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card glucose-value-card">
+            {glucoseChartData.map((item) => <div className="glucose-value-row" key={item.phase}><span>{item.phase}</span><strong>{item.value} mg/dL</strong></div>)}
+          </div>
+          <div className="glucose-old-values" style={{ display: 'none' }}>
             {savedGlucose.map((log, idx) => (
               <div key={log.id} style={{
                 display: 'flex', alignItems: 'center', gap: 16,

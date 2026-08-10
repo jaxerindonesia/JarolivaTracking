@@ -131,33 +131,37 @@ export const screeningResult = {
 }
 
 export const progressData = {
-  ff72_selesai: 0,
-  total_poin: 50,
-  total_checkin: 1,
-  total_sesi: 1,
+  ff72_selesai: 1,
+  total_poin: 550,
+  total_checkin: 2,
+  total_sesi: 3,
   sessions: [
     {
       id: 1,
-      date: '4 Agu 2026',
+      date: '10 Agu 2026',
       status: 'active',
-      duration_hours: 56,
+      duration_hours: 6,
       checkins: 1,
       glucose_count: 4,
     },
+    { id: 2, date: '7 Agu 2026', status: 'complete', duration_hours: 72, checkins: 1, glucose_count: 1 },
+    { id: 3, date: '7 Agu 2026', status: 'stopped', duration_hours: 8, checkins: 0, glucose_count: 0 },
   ],
   chart_data: [
-    { name: '#1', selesai: 0, void: 56 },
+    { name: '#1', selesai: 0, void: 8 },
+    { name: '#2', selesai: 72, void: 0 },
+    { name: '#3', selesai: 0, void: 6 },
   ],
 }
 
 export const rewardData = {
-  total_points: 50,
-  level: 'Starter',
-  next_level: 'Bronze',
-  next_level_points: 500,
-  ff72_selesai: 0,
-  badge_diraih: 1,
-  badge_tersisa: 7,
+  total_points: 550,
+  level: 'Bronze',
+  next_level: 'Silver',
+  next_level_points: 1000,
+  ff72_selesai: 1,
+  badge_diraih: 3,
+  badge_tersisa: 5,
 }
 
 export const badges = [

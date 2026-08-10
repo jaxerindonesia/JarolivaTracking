@@ -13,7 +13,12 @@ import {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const timer = useFastingTimer(activeSession.start_time, activeSession.target_hours)
+  let storedSession = null
+  try { storedSession = JSON.parse(localStorage.getItem('jaxlab-ff72-session')) } catch { storedSession = null }
+  const sessionStart = storedSession?.startTime || activeSession.start_time
+  const sessionEnd = storedSession?.stoppedAt || null
+  const timer = useFastingTimer(sessionStart, activeSession.target_hours, sessionEnd)
+  const currentDay = Math.min(3, Math.max(1, Math.floor(timer.hours / 24) + 1))
   const isConsumptionDue = useConsumptionSchedule()
 
   return (
@@ -49,7 +54,7 @@ export default function Dashboard() {
             }} />
             SEDANG BERJALAN
           </div>
-          <div className="fasting-day-badge">Day {activeSession.day} of 3</div>
+          <div className="fasting-day-badge">Day {currentDay} of 3</div>
         </div>
 
         <div className="fasting-hero-body">

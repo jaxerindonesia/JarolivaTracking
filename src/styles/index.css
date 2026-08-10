@@ -1800,6 +1800,12 @@ img {
 .fasting-milestone small { margin-top: 2px; font-size: 12px; }
 .fasting-milestone.reached > span { color: #fff; background: #71cf00; border-color: #71cf00; }
 .glucose-chart-card { padding: 20px; margin-bottom: 12px; }
+.glucose-line-chart { width: 100%; height: 180px; }
+.glucose-value-card { padding: 10px 15px; overflow: hidden; }
+.glucose-value-row { min-height: 45px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #d5dfe9; }
+.glucose-value-row:last-child { border-bottom: 0; }
+.glucose-value-row span { color: #536b85; font-size: 12px; }
+.glucose-value-row strong { color: #071426; font-size: 12px; white-space: nowrap; }
 .glucose-bars { height: 190px; display: flex; align-items: flex-end; gap: 12px; padding: 16px 10px 28px; border-left: 1px solid #aeb9c5; border-bottom: 1px solid #aeb9c5; }
 .glucose-bar-column { height: 100%; min-width: 52px; flex: 1; display: flex; align-items: center; justify-content: flex-end; flex-direction: column; }
 .glucose-bar-column span { width: 14px; min-height: 5px; background: #71cf00; border-radius: 8px 8px 0 0; }
@@ -2148,6 +2154,55 @@ img {
 .condition-text .condition-history-date { margin-top: 3px; font-size: 11px; }
 
 /* ---- Responsive ---- */
+
+/* ---- Progress reference layout ---- */
+.progress-page, .reward-page { width: 100%; max-width: 680px; margin: 0 auto; }
+.progress-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.progress-stat-card { min-height: 84px; display: flex; align-items: center; gap: 13px; padding: 14px; background: #fff; border: 1px solid #cfdae6; border-radius: 16px; box-shadow: var(--shadow-sm); }
+.progress-stat-icon { width: 42px; height: 42px; display: grid; place-items: center; flex-shrink: 0; border-radius: 14px; font-size: 19px; font-weight: 700; }
+.progress-stat-icon.green { color: #63b900; background: #eff9df; }.progress-stat-icon.orange { color: #ef9400; background: #fff7e5; }.progress-stat-icon.pink { color: #ff4870; background: #fff0f3; }.progress-stat-icon.blue { color: #0750a0; background: #e7eff9; }
+.progress-stat-card > div { display: flex; flex-direction: column; line-height: 1.25; }.progress-stat-card strong { color: #061324; font: 800 23px var(--font-body); }.progress-stat-card b { color: #2f557e; font-size: 11px; }.progress-stat-card small { color: #75879a; font-size: 9px; }
+.progress-screening-card { min-height: 76px; display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 20px; background: #f0f9e9; border: 1px solid #bfe08f; border-radius: 16px; box-shadow: var(--shadow-sm); }
+.progress-screening-icon { width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0; color: #69c400; background: #dff2c6; border-radius: 50%; }
+.progress-screening-card > div { display: flex; flex: 1; flex-direction: column; }
+.progress-screening-card strong { font-size: 14px; }
+.progress-screening-card small { color: #597087; font-size: 11px; }
+.progress-screening-card > b { padding: 5px 10px; color: #dd7200; background: #fff4d9; border-radius: 99px; font-size: 11px; }
+.progress-chart-card { padding: 20px; border-color: #cfdae6; border-radius: 16px; }
+.progress-chart-card .chart-title, .progress-history-card .chart-title { color: #06468f; }
+.progress-history-card { padding: 20px; background: #fff; border: 1px solid #cfdae6; border-radius: 16px; box-shadow: var(--shadow-sm); }
+.progress-session-row { min-height: 64px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid #dce4ed; }
+.progress-session-row:last-child { border-bottom: 0; }
+.progress-session-icon { width: 38px; height: 38px; display: grid; place-items: center; flex-shrink: 0; border-radius: 50%; }
+.progress-session-icon svg { width: 17px; }
+.progress-session-icon.active { color: #0750a0; background: #e7eff9; }.progress-session-icon.complete { color: #69c400; background: #eef9df; }.progress-session-icon.stopped { color: #71849c; background: #e9f0f8; }
+.progress-session-copy { display: flex; flex: 1; flex-direction: column; }.progress-session-copy > strong { font-size: 13px; }.progress-session-copy small { color: #61758d; font-size: 10.5px; }
+.progress-status { display: inline-block; padding: 3px 8px; margin-left: 5px; border-radius: 99px; font: 700 9px var(--font-body); font-style: normal; }.progress-status.active { color: #0750a0; background: #dceafb; }.progress-status.complete { color: #60aa12; background: #e8f8cf; }.progress-status.stopped { color: #58708b; background: #e2ebf5; }
+.progress-session-row > b { font-size: 13px; }
+
+/* ---- Reward reference layout ---- */
+.reward-page .reward-total-card { padding: 24px; background: linear-gradient(135deg, #0750a0, #063a78); border-radius: 22px; }
+.reward-total-card h3 { color: #a9d2ff; font: 700 11px var(--font-body); letter-spacing: .7px; }
+.reward-page .reward-level-badge { display: flex; align-items: center; gap: 5px; color: #bd5b00; background: #fff1d5; }
+.reward-page .reward-level-range { display: flex; justify-content: space-between; color: rgba(255,255,255,.66); font-size: 10px; }
+.reward-page .reward-progress-bar { margin-top: 7px; }
+.reward-page .reward-meta-row { margin-top: 25px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); background: transparent; }
+.reward-page .reward-meta-row > div { display: flex; flex-direction: column; align-items: center; }.reward-page .reward-meta-row strong { color: #fff; font-size: 20px; }.reward-page .reward-meta-row span { color: rgba(255,255,255,.64); font-size: 9px; }
+.reward-badge-header { margin-top: 18px; }.reward-badge-header > span { color: #61758d; font-size: 11px; }
+.reward-page .badge-card { min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #e8f1fc; border-color: #d2dfed; }.reward-page .badge-card.unlocked { border-color: #bddb9d; }.reward-page .badge-card.locked { opacity: .72; }
+.reward-page .badge-emoji { margin-bottom: 5px; font-size: 28px; }.reward-page .badge-name { font-size: 12px; }.reward-page .badge-desc { margin: 2px 0 7px; font-size: 9.5px; }.reward-page .badge-rarity { padding: 0; background: transparent; font-size: 8px; }
+.reward-info-card { padding: 20px; margin-top: 20px; background: #fff; border: 1px solid #cfdae6; border-radius: 16px; box-shadow: var(--shadow-sm); }
+.reward-info-card h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 13px; color: #06468f; font: 800 11px var(--font-body); letter-spacing: .4px; }
+.reward-info-card h2 svg { color: #f08a00; }
+.reward-way { min-height: 49px; display: flex; align-items: center; gap: 12px; }.reward-way > span { width: 24px; text-align: center; font-size: 20px; }.reward-way > div { display: flex; flex: 1; flex-direction: column; }.reward-way strong { font-size: 12px; }.reward-way small { color: #64778f; font-size: 10px; }.reward-way > b { color: #69bd00; font-size: 12px; }
+.reward-tier-list { display: flex; flex-direction: column; gap: 9px; }.reward-tier { min-height: 51px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: #e3eefb; border: 1px solid transparent; border-radius: 15px; }.reward-tier.current { border-color: #8eacd0; background: #f0f5fb; }.reward-tier > span { font-size: 20px; }.reward-tier > div { display: flex; flex: 1; flex-direction: column; }.reward-tier strong { font-size: 12px; }.reward-tier small { color: #62758d; font-size: 10px; }.reward-tier > b { padding: 3px 9px; color: #fff; background: #0750a0; border-radius: 99px; font-size: 9px; }
+
+@media (max-width: 520px) {
+  .progress-stats-grid { gap: 9px; }.progress-stat-card { min-height: 78px; padding: 11px; }.progress-stat-icon { width: 37px; height: 37px; }.progress-stat-card strong { font-size: 20px; }
+  .progress-screening-card { align-items: flex-start; }.progress-screening-card > b { white-space: nowrap; }
+  .progress-chart-card { padding: 16px 10px; }.progress-history-card { padding: 16px; }
+  .progress-session-copy small { line-height: 1.4; }.reward-info-card { padding: 17px; }
+}
 
 /* ---- Screening flow ---- */
 .screening-page { width: 100%; max-width: 540px; margin: 0 auto; }

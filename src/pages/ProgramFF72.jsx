@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
+import { useConsumptionSchedule } from '../hooks/useConsumptionSchedule'
 import { activeSession, checkins, glucoseLogs, products, consumptionLog } from '../data/mockData'
 
 const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
@@ -31,6 +32,7 @@ export default function ProgramFF72() {
   const [stoppedAt, setStoppedAt] = useState(savedSession?.stoppedAt || null)
   const [selectedStart, setSelectedStart] = useState(toDateTimeLocal(new Date()))
   const timer = useFastingTimer(sessionStart, activeSession.target_hours, stoppedAt)
+  const isConsumptionDue = useConsumptionSchedule()
   const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
 
   const stopProgram = () => {
@@ -280,9 +282,10 @@ export default function ProgramFF72() {
 
       {activeTab === 'Timeline' && (
         <div className="fade-in">
-          <div className="card" style={{ padding: '0 20px' }}>
-            {consumptionLog.map((item) => (
-              <div key={item.id} className="consumption-item">
+          <div className="card consumption-list-card">
+            {consumptionLog.map((item) => {
+              const isDue = isConsumptionDue(item.time)
+              return <div key={item.id} className={`consumption-item${isDue ? ' consumption-item-due' : ''}`}>
                 <div className="consumption-time">
                   <span style={{ fontSize: 14 }}>🕐</span>
                   {item.time}
@@ -293,7 +296,7 @@ export default function ProgramFF72() {
                   <p>{item.detail}</p>
                 </div>
               </div>
-            ))}
+            })}
           </div>
         </div>
       )}

@@ -1,96 +1,90 @@
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import {
+  ArrowLeft, ArrowRight, Check, CheckCircle2, CircleUserRound, Clock3,
+  Droplets, HeartPulse, LockKeyhole, Pill, Ruler, Scale, Stethoscope,
+  Utensils, UtensilsCrossed,
+} from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { screeningResult } from '../data/mockData'
 
+const initialForm = {
+  lastMealAt: '', lastMeal: '', weight: '', height: '', bloodSugar: '', bloodPressure: '',
+  diabetes: '', hypertension: '', kidneyDisease: '', pregnant: '', breastfeeding: '', medication: '', notes: '',
+}
+
+const steps = [
+  { title: 'Kondisi Makan Terakhir', subtitle: 'Ceritakan kapan dan apa yang terakhir Anda makan', icon: Utensils },
+  { title: 'Data Fisik', subtitle: 'Masukkan data tubuh Anda saat ini', icon: Scale },
+  { title: 'Riwayat Kesehatan', subtitle: 'Jawab dengan jujur untuk keamanan Anda', icon: HeartPulse },
+  { title: 'Kondisi Khusus', subtitle: 'Beberapa kondisi membutuhkan perhatian tambahan', icon: CircleUserRound },
+]
+
+function Choice({ name, value, onChange }) {
+  return (
+    <div className="screening-choice-row">
+      {['Ya', 'Tidak'].map((option) => (
+        <button key={option} type="button" className={`screening-choice ${value === option ? 'selected' : ''}`} onClick={() => onChange(name, option)}>
+          {option}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function Screening() {
   const navigate = useNavigate()
+  const [step, setStep] = useState(1)
+  const [showResult, setShowResult] = useState(false)
+  const [form, setForm] = useState(initialForm)
+  const setField = (name, value) => setForm((current) => ({ ...current, [name]: value }))
+  const bmi = useMemo(() => {
+    const heightInMeters = Number(form.height) / 100
+    return form.weight && heightInMeters ? (Number(form.weight) / heightInMeters ** 2).toFixed(1) : null
+  }, [form.height, form.weight])
+  const valid = step === 1 ? form.lastMealAt && form.lastMeal.trim()
+    : step === 2 ? form.weight && form.height
+      : step === 3 ? form.diabetes && form.hypertension && form.kidneyDisease
+        : form.pregnant && form.breastfeeding && form.medication
 
+  const next = () => {
+    if (!valid) return
+    if (step === 4) setShowResult(true)
+    else setStep((current) => current + 1)
+  }
+
+  if (showResult) {
+    return (
+      <div className="screening-page screening-result-page fade-in">
+        <div className="page-header screening-page-header"><h1 className="page-title">Hasil Screening</h1><p className="page-subtitle">Berdasarkan jawaban Anda</p></div>
+        <div className="screening-result-card"><div className="screening-check-icon"><Check size={28} strokeWidth={3} /></div><h2 className="screening-title">Anda Siap Memulai FF72!</h2><p className="screening-desc">Berdasarkan hasil screening, tubuh Anda dalam kondisi yang sesuai untuk menjalani program Fat Fasting 72 Jam.</p></div>
+        <div className="indikator-card"><div className="indikator-header">INDIKATOR KESIAPAN</div><div className="indikator-body"><div className="indikator-circle"><CircularProgress size={100} strokeWidth={10} percentage={screeningResult.score} color="#71c700" trackColor="#e5ebf2"><div className="indikator-circle-inner"><div className="indikator-score">{screeningResult.score}</div><div className="indikator-score-sub">/ 100</div></div></CircularProgress></div><div className="indikator-list">{screeningResult.breakdown.map((item) => <div key={item.label} className="indikator-row"><div className="indikator-label-row"><span>{item.label}</span><strong>{item.value}%</strong></div><div className="progress-bar-wrap"><div className="progress-bar-fill" style={{ width: `${item.value}%` }} /></div></div>)}</div></div></div>
+        <div className="points-banner"><span className="points-confetti">🎉</span><div className="points-banner-text"><strong>+{screeningResult.points_earned} Poin Didapat!</strong><span>Terima kasih telah menyelesaikan screening kesehatan.</span></div></div>
+        <button className="screening-program-button" onClick={() => navigate('/program')}><CheckCircle2 size={17} /> Lanjut ke Program FF72 <ArrowRight size={17} /></button>
+        <button className="screening-reset" onClick={() => { setForm(initialForm); setStep(1); setShowResult(false) }}>Isi ulang screening</button>
+      </div>
+    )
+  }
+
+  const CurrentIcon = steps[step - 1].icon
   return (
-    <div className="fade-in">
-      {/* Header */}
-      <div className="page-header">
-        <h1 className="page-title">Screening Kesehatan</h1>
-        <p className="page-subtitle">Hasil screening terakhir Anda</p>
-      </div>
+    <div className="screening-page fade-in">
+      <div className="page-header screening-page-header"><h1 className="page-title">Screening Kesehatan</h1><p className="page-subtitle">Wajib diisi sebelum memulai Program FF72</p></div>
+      <div className="screening-progress-copy"><span>Langkah {step} dari 4</span><strong>{step * 25}% selesai</strong></div>
+      <div className="screening-progress"><span style={{ width: `${step * 25}%` }} /></div>
+      <div className="screening-dots">{[1, 2, 3, 4].map((item) => <i key={item} className={item < step ? 'done' : item === step ? 'active' : ''} />)}</div>
 
-      {/* Result Card */}
-      <div className="screening-result-card fade-in fade-in-delay-1">
-        <div className="screening-check-icon">
-          <Check size={28} color="white" strokeWidth={3} />
+      <section className="screening-form-card">
+        <header><span className="screening-step-icon"><CurrentIcon size={21} /></span><div><h2>{steps[step - 1].title}</h2><p>{steps[step - 1].subtitle}</p></div></header>
+        <div className="screening-fields">
+          {step === 1 && <><label><span><Clock3 /> Kapan terakhir makan?</span><input type="datetime-local" value={form.lastMealAt} onChange={(e) => setField('lastMealAt', e.target.value)} /></label><label><span><UtensilsCrossed /> Makanan terakhir yang dikonsumsi?</span><input type="text" placeholder="Contoh: Nasi putih, ayam goreng, sayur" value={form.lastMeal} onChange={(e) => setField('lastMeal', e.target.value)} /></label></>}
+          {step === 2 && <><div className="screening-two-columns"><label><span><Scale /> Berat Badan (kg)</span><input type="number" min="1" placeholder="48" value={form.weight} onChange={(e) => setField('weight', e.target.value)} /></label><label><span><Ruler /> Tinggi Badan (cm)</span><input type="number" min="1" placeholder="160" value={form.height} onChange={(e) => setField('height', e.target.value)} /></label></div>{bmi && <div className="screening-bmi">BMI Anda: <strong>{bmi}</strong></div>}<label><span><Droplets /> Gula Darah Terakhir (mg/dL)</span><input type="number" min="0" placeholder="100 (opsional)" value={form.bloodSugar} onChange={(e) => setField('bloodSugar', e.target.value)} /></label><label><span><HeartPulse /> Tekanan Darah (opsional)</span><input type="text" placeholder="Contoh: 120/80" value={form.bloodPressure} onChange={(e) => setField('bloodPressure', e.target.value)} /></label></>}
+          {step === 3 && <>{[['diabetes', 'Apakah Anda memiliki Diabetes?'], ['hypertension', 'Apakah Anda memiliki Hipertensi?'], ['kidneyDisease', 'Apakah Anda memiliki Penyakit Ginjal?']].map(([name, label]) => <label key={name}><span><HeartPulse /> {label}</span><Choice name={name} value={form[name]} onChange={setField} /></label>)}</>}
+          {step === 4 && <>{[['pregnant', 'Apakah sedang hamil?', CircleUserRound], ['breastfeeding', 'Apakah sedang menyusui?', CircleUserRound], ['medication', 'Apakah sedang mengonsumsi obat?', Pill]].map(([name, label, Icon]) => <label key={name}><span><Icon /> {label}</span><Choice name={name} value={form[name]} onChange={setField} /></label>)}<label><span><Stethoscope /> Riwayat penyakit lainnya (opsional)</span><textarea placeholder="Ceritakan kondisi kesehatan lain yang relevan..." value={form.notes} onChange={(e) => setField('notes', e.target.value)} /></label></>}
         </div>
-        <h2 className="screening-title">Anda Siap Memulai FF72!</h2>
-        <p className="screening-desc">
-          Berdasarkan hasil screening, tubuh Anda dalam kondisi{' '}
-          <strong>yang sesuai</strong> untuk menjalani program Fat Fasting 72 Jam.
-        </p>
-      </div>
-
-      {/* Indikator Kesiapan */}
-      <div className="indikator-card fade-in fade-in-delay-2">
-        <div className="indikator-header">INDIKATOR KESIAPAN</div>
-        <div className="indikator-body">
-          {/* Circle Score */}
-          <div className="indikator-circle">
-            <CircularProgress
-              size={100}
-              strokeWidth={10}
-              percentage={screeningResult.score}
-              color="#7DC242"
-              trackColor="#F0F3F8"
-            >
-              <div className="indikator-circle-inner">
-                <div className="indikator-score">{screeningResult.score}</div>
-                <div className="indikator-score-sub">/ 100</div>
-              </div>
-            </CircularProgress>
-          </div>
-
-          {/* Progress Bars */}
-          <div className="indikator-list">
-            {screeningResult.breakdown.map((item) => (
-              <div key={item.label} className="indikator-row">
-                <div className="indikator-label-row">
-                  <span>{item.label}</span>
-                  <span style={{ fontWeight: 600 }}>{item.value}%</span>
-                </div>
-                <div className="progress-bar-wrap">
-                  <div
-                    className="progress-bar-fill"
-                    style={{ width: `${item.value}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Points Banner */}
-      <div className="points-banner fade-in fade-in-delay-3">
-        <span style={{ fontSize: 28 }}>🎉</span>
-        <div className="points-banner-text">
-          <strong>+{screeningResult.points_earned} Poin Didapat!</strong>
-          <span>Terima kasih telah menyelesaikan screening kesehatan.</span>
-        </div>
-      </div>
-
-      {/* CTA Buttons */}
-      <div className="fade-in fade-in-delay-4" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button
-          className="btn btn-primary btn-full"
-          style={{ padding: '14px 24px', fontSize: 15 }}
-          onClick={() => navigate('/program')}
-        >
-          🎯 Lanjut ke Program FF72
-        </button>
-        <button
-          className="btn btn-outline btn-full"
-          style={{ padding: '12px 24px' }}
-        >
-          Isi ulang screening
-        </button>
-      </div>
+      </section>
+      <div className={`screening-actions ${step === 1 ? 'single' : ''}`}>{step > 1 && <button className="screening-back" onClick={() => setStep((current) => current - 1)}><ArrowLeft size={17} /> Kembali</button>}<button className={step === 4 ? 'screening-finish' : 'screening-next'} disabled={!valid} onClick={next}>{step === 4 ? 'Lihat Hasil Screening' : 'Lanjutkan'} {step === 4 ? <CheckCircle2 size={17} /> : <ArrowRight size={17} />}</button></div>
+      <p className="screening-privacy"><LockKeyhole size={12} /> Data kesehatan Anda bersifat rahasia dan hanya digunakan untuk menentukan kesiapan program.</p>
     </div>
   )
 }

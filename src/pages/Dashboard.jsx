@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
+import { useConsumptionSchedule } from '../hooks/useConsumptionSchedule'
 import {
   currentUser, activeSession, userStats,
   products, consumptionLog
@@ -13,6 +14,7 @@ import {
 export default function Dashboard() {
   const navigate = useNavigate()
   const timer = useFastingTimer(activeSession.start_time, activeSession.target_hours)
+  const isConsumptionDue = useConsumptionSchedule()
 
   return (
     <div className="fade-in">
@@ -171,12 +173,13 @@ export default function Dashboard() {
             Detail <ChevronRight size={14} />
           </button>
         </div>
-        <div className="card" style={{ padding: '0 20px' }}>
-          {consumptionLog.map((item) => (
-            <div key={item.id} className="consumption-item">
+        <div className="card consumption-list-card">
+          {consumptionLog.map((item) => {
+            const isDue = isConsumptionDue(item.time)
+            return <div key={item.id} className={`consumption-item${isDue ? ' consumption-item-due' : ''}`}>
               <div className="consumption-time-block">
                 <span className="consumption-time-text">{item.time}</span>
-                {item.done && (
+                {isDue && (
                   <span className="consumption-done-dot" title="Sudah dikonsumsi">✓</span>
                 )}
               </div>
@@ -192,7 +195,7 @@ export default function Dashboard() {
               </div>
               <ChevronRight size={16} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
             </div>
-          ))}
+          })}
         </div>
       </div>
 

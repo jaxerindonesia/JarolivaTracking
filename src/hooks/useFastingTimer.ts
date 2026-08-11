@@ -1,0 +1,57 @@
+import { useState, useEffect } from 'react'
+
+/**
+ * useFastingTimer — custom hook
+ * Returns live elapsed seconds from a given start timestamp
+ */
+export function useFastingTimer(startIso: string | Date, targetHours = 72, endIso: string | Date | null = null) {
+  const startMs = new Date(startIso).getTime()
+  const targetMs = targetHours * 60 * 60 * 1000
+
+  const getElapsed = () => {
+    const endMs = endIso ? new Date(endIso).getTime() : Date.now()
+    return Math.max(0, endMs - startMs)
+  }
+
+  const [elapsed, setElapsed] = useState(getElapsed)
+
+  useEffect(() => {
+    setElapsed(getElapsed())
+
+    // Once an end time exists, keep the last duration fixed and do not
+    // create another interval that would continue advancing the timer.
+    if (endIso) return undefined
+
+    const id = setInterval(() => setElapsed(getElapsed()), 1000)
+    return () => clearInterval(id)
+  }, [startIso, endIso])
+
+  const totalSeconds = Math.floor(elapsed / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const timeString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+
+  const percentage = Math.min(100, (elapsed / targetMs) * 100)
+  const remaining = Math.max(0, targetMs - elapsed)
+  const remainingHours = Math.floor(remaining / 3600000)
+  const remainingMinutes = Math.floor((remaining % 3600000) / 60000)
+
+  return {
+    timeString,
+    hours,
+    minutes,
+    seconds,
+    percentage,
+    remainingHours,
+    remainingMinutes,
+    totalSeconds,
+  }
+}
+
+export function formatDuration(hours: number) {
+  if (hours < 1) return `${Math.round(hours * 60)}m`
+  return `${Math.floor(hours)}j`
+}

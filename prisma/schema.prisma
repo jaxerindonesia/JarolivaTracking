@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt           @id @default(autoincrement())
+  name         String           @db.VarChar(100)
+  email        String           @unique @db.VarChar(255)
+  passwordHash String           @map("password_hash")
+  points       Int              @default(0)
+  phone        String?          @db.VarChar(30)
+  birthDate    DateTime?        @map("birth_date") @db.Date
+  gender       String?          @db.VarChar(20)
+  city         String?          @db.VarChar(100)
+  weightKg     Decimal?         @map("weight_kg") @db.Decimal(5, 2)
+  heightCm     Decimal?         @map("height_cm") @db.Decimal(5, 2)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  sessions     FastingSession[]
+  checkins     Checkin[]
+  glucoseLogs  GlucoseLog[]
+  screenings   Screening[]
+  pointTransactions PointTransaction[]
+  badges       UserBadge[]
+  consumptionLogs ConsumptionLog[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Screening {
+  id           BigInt   @id @default(autoincrement())
+  userId       BigInt   @map("user_id")
+  answers      Json
+  score        Int
+  status       String   @db.VarChar(20)
+  pointsEarned Int      @default(50) @map("points_earned")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("screenings")
+}
+
+model PointTransaction {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  amount    Int
+  reason    String   @db.VarChar(100)
+  sourceType String? @map("source_type") @db.VarChar(40)
+  sourceId  String?  @map("source_id") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("point_transactions")
+}
+
+model Badge {
+  id          BigInt      @id @default(autoincrement())
+  code        String      @unique @db.VarChar(50)
+  name        String      @db.VarChar(100)
+  description String
+  emoji       String      @db.VarChar(10)
+  rarity      String      @db.VarChar(20)
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  badgeId   BigInt   @map("badge_id")
+  earnedAt  DateTime @default(now()) @map("earned_at") @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model ConsumptionLog {
+  id          BigInt   @id @default(autoincrement())
+  userId      BigInt   @map("user_id")
+  scheduleKey String   @map("schedule_key") @db.VarChar(50)
+  consumedOn  DateTime @map("consumed_on") @db.Date
+  consumedAt  DateTime @default(now()) @map("consumed_at") @db.Timestamptz
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scheduleKey, consumedOn])
+  @@map("consumption_logs")
+}
+
+model Notification {
+  id        BigInt    @id @default(autoincrement())
+  userId    BigInt    @map("user_id")
+  title     String    @db.VarChar(120)
+  message   String
+  type      String    @default("info") @db.VarChar(30)
+  readAt    DateTime? @map("read_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model FastingSession {
+  id          BigInt       @id @default(autoincrement())
+  userId      BigInt       @map("user_id")
+  startTime   DateTime     @map("start_time") @db.Timestamptz
+  endTime     DateTime?    @map("end_time") @db.Timestamptz
+  targetHours Int          @default(72) @map("target_hours")
+  status      String       @default("active") @db.VarChar(20)
+  stopReason  String?      @map("stop_reason")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkins    Checkin[]
+  glucoseLogs GlucoseLog[]
+
+  @@index([userId])
+  @@map("fasting_sessions")
+}
+
+model Checkin {
+  id               BigInt          @id @default(autoincrement())
+  userId           BigInt          @map("user_id")
+  sessionId        BigInt?         @map("session_id")
+  condition        String          @db.VarChar(40)
+  emoji            String?         @db.VarChar(10)
+  waterGlasses     Int             @default(0) @map("water_glasses") @db.SmallInt
+  jarolivaTaken    Boolean         @map("jaroliva_taken")
+  followedProtocol Boolean         @map("followed_protocol")
+  pointsEarned     Int             @default(10) @map("points_earned")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session          FastingSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)], map: "checkins_user_created_idx")
+  @@map("checkins")
+}
+
+model GlucoseLog {
+  id        BigInt          @id @default(autoincrement())
+  userId    BigInt          @map("user_id")
+  sessionId BigInt?         @map("session_id")
+  phase     String          @db.VarChar(40)
+  value     Int             @db.SmallInt
+  unit      String          @default("mg/dL") @db.VarChar(10)
+  loggedAt  DateTime        @default(now()) @map("logged_at") @db.Timestamptz
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session   FastingSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, loggedAt(sort: Desc)], map: "glucose_user_logged_idx")
+  @@map("glucose_logs")
+}

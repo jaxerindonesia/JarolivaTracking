@@ -5,30 +5,46 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:dev:api\"",
-    "dev:web": "vite",
-    "dev:api": "node --watch server/index.js",
-    "db:migrate": "node server/index.js --migrate",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev:web": "next dev",
+    "dev:api": "tsx watch server/index.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "db:baseline": "prisma migrate resolve --applied 20260811000000_init",
+    "db:studio": "prisma studio",
+    "build": "next build",
+    "start": "concurrently \"next start\" \"tsx server/index.ts\"",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
+    "@prisma/client": "^6.19.1",
     "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "concurrently": "^10.0.4",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.447.0",
-    "pg": "^8.23.0",
+    "next": "^15.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.27.0",
-    "recharts": "^2.12.7"
+    "recharts": "^2.12.7",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "20.17.6",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
-    "vite": "^5.4.10"
+    "prisma": "^6.19.1",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.12",
+    "typescript": "5.8.2"
   }
 }

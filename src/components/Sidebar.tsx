@@ -50,3 +50,23 @@ export default function Sidebar() {
     </aside>
   )
 }
+
+export function MobileBottomNav() {
+  const pathname = usePathname()
+
+  return (
+    <nav className="mobile-bottom-nav" aria-label="Navigasi utama">
+      {navItems.map(({ to, icon, label }) => (
+        <Link
+          key={to}
+          href={to}
+          className={`mobile-nav-item${pathname === to ? ' active' : ''}`}
+          aria-current={pathname === to ? 'page' : undefined}
+        >
+          {icon}
+          <span>{label === 'Program FF72' ? 'Program' : label}</span>
+        </Link>
+      ))}
+    </nav>
+  )
+}

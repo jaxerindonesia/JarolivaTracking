@@ -1,4 +1,4 @@
-import Sidebar from './Sidebar'
+import Sidebar, { MobileBottomNav } from './Sidebar'
 import type { ReactNode } from 'react'
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -10,6 +10,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+      <MobileBottomNav />
     </div>
   )
 }

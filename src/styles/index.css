@@ -1860,17 +1860,43 @@ img {
 }
 
 /* ---- Authentication ---- */
-.auth-loading, .login-page { min-height: 100vh; display: grid; place-items: center; background: #eef3f9; }
+.auth-loading, .login-page { min-height: 100vh; display: grid; place-items: center; background: #f4f7fa; }
+.login-welcome { width: min(390px, calc(100% - 32px)); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.login-mark { width: 64px; height: 64px; display: grid; place-items: center; margin-bottom: 20px; color: #fff; background: #06448d; border-radius: 16px; box-shadow: 0 10px 22px rgba(6,68,141,.24); }
+.login-mark span { font-size: 38px; font-weight: 300; transform: rotate(8deg); }
+.login-welcome > img { width: 190px; height: 58px; object-fit: contain; }
+.login-welcome h1 { margin-top: 2px; color: #71c900; font-size: 14px; letter-spacing: 2px; }
+.login-welcome p { max-width: 340px; margin: 20px 0 26px; color: #51647b; font-size: 14px; line-height: 1.65; }
+.login-primary { width: 100%; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #fff; background: #06448d; border-radius: 11px; font-weight: 700; transition: transform .15s, background .15s; }
+.login-primary:hover { background: #053a78; transform: translateY(-1px); }
+.login-primary:disabled { opacity: .6; transform: none; }
 .login-card { width: min(420px, calc(100% - 32px)); padding: 32px; background: #fff; border: 1px solid #d6e0eb; border-radius: 22px; box-shadow: 0 18px 50px rgba(6,54,124,.12); }
+.login-card { position: relative; }
+.login-back { position: absolute; top: 21px; left: 21px; width: 36px; height: 36px; display: grid; place-items: center; color: #536980; border-radius: 50%; }
+.login-back:hover { background: #edf3f9; }
+.login-back svg { width: 19px; }
 .login-card > img { display: block; width: 180px; height: 55px; margin: 0 auto 24px; object-fit: contain; }
 .login-card h1 { text-align: center; font-family: var(--font-heading); font-size: 25px; }
 .login-card > p { margin: 7px 0 24px; text-align: center; color: var(--color-text-secondary); font-size: 13px; }
 .login-card label { display: block; margin-top: 13px; color: var(--color-text-secondary); font-size: 12px; font-weight: 600; }
 .login-card input { width: 100%; min-height: 45px; padding: 0 13px; margin-top: 6px; border: 1px solid #cfdae6; border-radius: 12px; font: inherit; }
-.login-card form > button { width: 100%; min-height: 45px; margin-top: 20px; color: #fff; background: #00367c; border-radius: 12px; font-weight: 700; }
+.login-card form > button { margin-top: 20px; }
 .login-card form > button:disabled { opacity: .6; }
 .login-error { padding: 10px 12px; margin-top: 13px; color: #b4232d; background: #fff0f2; border-radius: 10px; font-size: 12px; }
 .login-switch { width: 100%; margin-top: 16px; color: #0750a0; font-size: 12px; font-weight: 600; }
+.login-methods { display: grid; gap: 10px; }
+.login-methods > button { min-height: 46px; display: grid; grid-template-columns: 25px 1fr 42px; align-items: center; padding: 0 14px; color: #111827; background: #fff; border: 1px solid #d4dce5; border-radius: 11px; font-size: 13px; font-weight: 650; text-align: left; }
+.login-methods > button:not(:disabled):hover { border-color: #82a8d2; background: #f7fbff; }
+.login-methods > button:disabled { cursor: not-allowed; opacity: .58; }
+.login-methods small { color: #708197; font-size: 9px; font-weight: 500; text-align: right; }
+.google-mark { color: #4285f4; font-size: 18px; }.apple-mark { color: #111; font-size: 14px; }.microsoft-mark { color: #f25022; font-size: 22px; }
+.login-register-copy { margin: 18px 0 0 !important; font-size: 12px !important; }
+.login-register-copy button { color: #0750a0; font-weight: 700; }
+@media (max-width: 480px) {
+  .login-page { align-items: center; padding: 18px 0; }
+  .login-card { padding: 28px 22px; border-radius: 18px; }
+  .login-card > img { width: 150px; margin-bottom: 20px; }
+}
 .sidebar-logout { display: flex; align-items: center; gap: 10px; margin: 0 12px 10px; padding: 11px 12px; color: rgba(255,255,255,.68); border-radius: 10px; font-size: 13px; }
 .sidebar-logout:hover { color: #fff; background: rgba(255,255,255,.08); }
 .profile-edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px; }

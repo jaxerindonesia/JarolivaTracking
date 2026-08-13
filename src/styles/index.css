@@ -1889,6 +1889,8 @@ img {
 .login-methods > button:not(:disabled):hover { border-color: #82a8d2; background: #f7fbff; }
 .login-methods > button:disabled { cursor: not-allowed; opacity: .58; }
 .login-methods small { color: #708197; font-size: 9px; font-weight: 500; text-align: right; }
+.google-login-button { width: 100%; min-height: 44px; display: flex; justify-content: center; overflow: hidden; }
+.google-login-button.is-busy { pointer-events: none; opacity: .6; }
 .google-mark { color: #4285f4; font-size: 18px; }.apple-mark { color: #111; font-size: 14px; }.microsoft-mark { color: #f25022; font-size: 22px; }
 .login-register-copy { margin: 18px 0 0 !important; font-size: 12px !important; }
 .login-register-copy button { color: #0750a0; font-weight: 700; }

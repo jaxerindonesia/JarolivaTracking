@@ -21,6 +21,7 @@ interface AuthContextValue {
   user: User | null
   loading: boolean
   authenticate: (mode: 'login' | 'register', values: Record<string, string>) => Promise<void>
+  authenticateWithGoogle: (credential: string) => Promise<void>
   logout: () => void
   setUser: Dispatch<SetStateAction<User | null>>
 }
@@ -38,8 +39,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await api<{ token: string; user: User }>(`/auth/${mode}`, { method: 'POST', body: JSON.stringify(values) })
     localStorage.setItem('jaxlab-token', data.token); setUser(data.user)
   }
+  const authenticateWithGoogle = async (credential: string) => {
+    const data = await api<{ token: string; user: User }>('/auth/google', {
+      method: 'POST', body: JSON.stringify({ credential }),
+    })
+    localStorage.setItem('jaxlab-token', data.token)
+    setUser(data.user)
+  }
   const logout = () => { localStorage.removeItem('jaxlab-token'); setUser(null) }
-  return <AuthContext.Provider value={{ user, loading, authenticate, logout, setUser }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, authenticate, authenticateWithGoogle, logout, setUser }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => {

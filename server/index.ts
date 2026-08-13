@@ -2,11 +2,14 @@ import 'dotenv/config'
 import express, { type NextFunction, type Request, type Response } from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'node:crypto'
+import { OAuth2Client } from 'google-auth-library'
 import { Prisma } from '@prisma/client'
 import { prisma } from './db'
 import { createToken, requireAuth, type AuthRequest } from './auth'
 
 const app = express()
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000' }))
 app.use(express.json({ limit: '100kb' }))
 
@@ -95,6 +98,38 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(401).json({ message: 'Email atau password salah.' })
   }
   return res.json({ token: createToken(user), user: publicUser(user) })
+})
+
+app.post('/api/auth/google', async (req, res) => {
+  const credential = typeof req.body?.credential === 'string' ? req.body.credential : ''
+  const clientId = process.env.GOOGLE_CLIENT_ID
+  if (!clientId) return res.status(503).json({ message: 'Login Google belum dikonfigurasi di server.' })
+  if (!credential) return res.status(400).json({ message: 'Token Google tidak ditemukan.' })
+
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: clientId })
+    const profile = ticket.getPayload()
+    if (!profile?.email || !profile.email_verified) {
+      return res.status(401).json({ message: 'Email akun Google belum terverifikasi.' })
+    }
+    const email = profile.email.toLowerCase()
+    let user = await prisma.user.findUnique({ where: { email } })
+    if (!user) {
+      user = await prisma.user.create({ data: {
+        name: profile.name?.trim() || email.split('@')[0],
+        email,
+        passwordHash: await bcrypt.hash(randomBytes(32).toString('hex'), 12),
+      } })
+      await prisma.notification.create({ data: {
+        userId: user.id,
+        title: 'Selamat datang di JAXLAB+',
+        message: 'Lengkapi profil dan screening kesehatan sebelum memulai FF72.',
+      } })
+    }
+    return res.json({ token: createToken(user), user: publicUser(user) })
+  } catch {
+    return res.status(401).json({ message: 'Login Google tidak valid atau sudah kedaluwarsa.' })
+  }
 })
 
 app.get('/api/me', requireAuth, async (request, res) => {

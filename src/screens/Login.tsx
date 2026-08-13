@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Script from 'next/script'
 import { ArrowLeft, LogIn, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { Input } from '../components/ui/input'
@@ -7,14 +8,51 @@ import type { FormEvent } from 'react'
 
 type Step = 'welcome' | 'methods' | 'email'
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: { id: {
+        initialize: (options: { client_id: string; callback: (response: { credential: string }) => void }) => void
+        renderButton: (element: HTMLElement, options: Record<string, string | number>) => void
+      } }
+    }
+  }
+}
+
 export default function Login() {
-  const { user, authenticate } = useAuth()
+  const { user, authenticate, authenticateWithGoogle } = useAuth()
   const router = useRouter()
   const [step, setStep] = useState<Step>('welcome')
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const googleButton = useRef<HTMLDivElement>(null)
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+  const renderGoogleButton = () => {
+    if (!googleClientId || !window.google || !googleButton.current) return
+    googleButton.current.replaceChildren()
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: async ({ credential }) => {
+        setBusy(true)
+        setError('')
+        try { await authenticateWithGoogle(credential) }
+        catch (e) { setError(e instanceof Error ? e.message : 'Login Google gagal.') }
+        finally { setBusy(false) }
+      },
+    })
+    window.google.accounts.id.renderButton(googleButton.current, {
+      type: 'standard', theme: 'outline', size: 'large', text: 'continue_with',
+      shape: 'rectangular', logo_alignment: 'left',
+      width: Math.min(352, googleButton.current.clientWidth), locale: 'id',
+    })
+  }
+
+  useEffect(() => {
+    if (step === 'methods') renderGoogleButton()
+  }, [step])
 
   useEffect(() => {
     if (user) router.replace('/dashboard')
@@ -43,6 +81,7 @@ export default function Login() {
 
   return (
     <main className="login-page">
+      {googleClientId && <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={renderGoogleButton} />}
       {step === 'welcome' && (
         <section className="login-welcome" aria-labelledby="welcome-title">
           <div className="login-mark"><span>ϟ</span></div>
@@ -62,11 +101,14 @@ export default function Login() {
           <h1 id="method-title">Log in or Sign up</h1>
           <p>Pilih cara untuk melanjutkan ke Member Area.</p>
           <div className="login-methods">
-            <button type="button" disabled><strong className="google-mark">G</strong><span>Continue with Google</span><small>Segera</small></button>
+            {googleClientId ? <div ref={googleButton} className={`google-login-button${busy ? ' is-busy' : ''}`} /> : (
+              <button type="button" disabled title="NEXT_PUBLIC_GOOGLE_CLIENT_ID belum dikonfigurasi"><strong className="google-mark">G</strong><span>Continue with Google</span><small>Perlu konfigurasi</small></button>
+            )}
             <button type="button" disabled><strong className="apple-mark">●</strong><span>Continue with Apple</span><small>Segera</small></button>
             <button type="button" disabled><strong className="microsoft-mark">⊞</strong><span>Continue with Microsoft</span><small>Segera</small></button>
             <button type="button" onClick={() => openEmail('login')}><Mail size={18} /><span>Continue with email</span></button>
           </div>
+          {error && <div className="login-error" role="alert">{error}</div>}
           <p className="login-register-copy">Belum punya akun? <button onClick={() => openEmail('register')}>Daftar dengan email</button></p>
         </section>
       )}

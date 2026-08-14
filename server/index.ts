@@ -48,6 +48,11 @@ const startOfToday = () => {
   return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
 }
 
+const nextJakartaDay = (date = new Date()) => {
+  const jakarta = new Date(date.getTime() + 7 * 60 * 60 * 1000)
+  return new Date(Date.UTC(jakarta.getUTCFullYear(), jakarta.getUTCMonth(), jakarta.getUTCDate() + 1) - 7 * 60 * 60 * 1000)
+}
+
 async function syncBadges(id: bigint) {
   const [user, completed, screenings, allBadges] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id } }),
@@ -163,10 +168,11 @@ app.put('/api/me', requireAuth, async (request, res) => {
 app.get('/api/program', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   const id = userId(req)
-  const [session, checkins, glucose] = await Promise.all([
+  const [session, checkins, glucose, latestScreening] = await Promise.all([
     prisma.fastingSession.findFirst({ where: { userId: id }, orderBy: { createdAt: 'desc' } }),
     prisma.checkin.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' } }),
     prisma.glucoseLog.findMany({ where: { userId: id }, orderBy: { loggedAt: 'asc' } }),
+    prisma.screening.findFirst({ where: { userId: id }, orderBy: { createdAt: 'desc' } }),
   ])
   let currentSession = session
   if (session?.status === 'active' && Date.now() - session.startTime.getTime() >= session.targetHours * 3600000) {
@@ -180,13 +186,27 @@ app.get('/api/program', requireAuth, async (request, res) => {
     })
     if (completed) { currentSession = completed; await syncBadges(id) }
   }
-  return res.json({ session: currentSession ? sessionDto(currentSession) : null, checkins: checkins.map(checkinDto), glucose: glucose.map(glucoseDto) })
+  return res.json({
+    session: currentSession ? sessionDto(currentSession) : null,
+    checkins: checkins.map(checkinDto),
+    glucose: glucose.map(glucoseDto),
+    screeningCompleted: Boolean(latestScreening && latestScreening.score >= 60),
+    screeningScore: latestScreening?.score ?? null,
+    screeningRetryAt: latestScreening && latestScreening.score < 60 ? nextJakartaDay(latestScreening.createdAt) : null,
+  })
 })
 
 app.post('/api/program/start', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   try {
-    const session = await prisma.fastingSession.create({ data: { userId: userId(req), startTime: new Date(req.body.startTime) } })
+    const id = userId(req)
+    const latestScreening = await prisma.screening.findFirst({ where: { userId: id }, orderBy: { createdAt: 'desc' } })
+    if (!latestScreening || latestScreening.score < 60) {
+      return res.status(403).json({ message: latestScreening
+        ? 'Hasil screening belum lulus. Anda dapat melakukan screening ulang besok.'
+        : 'Selesaikan screening kesehatan sebelum memulai Program FF72.' })
+    }
+    const session = await prisma.fastingSession.create({ data: { userId: id, startTime: new Date(req.body.startTime) } })
     return res.status(201).json(sessionDto(session))
   } catch (error) {
     const conflict = error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
@@ -239,18 +259,30 @@ app.post('/api/glucose', requireAuth, async (request, res) => {
 app.get('/api/screenings/latest', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   const screening = await prisma.screening.findFirst({ where: { userId: userId(req) }, orderBy: { createdAt: 'desc' } })
-  return res.json(screening ? json({ ...screening, points_earned: screening.pointsEarned, created_at: screening.createdAt }) : null)
+  return res.json(screening ? json({
+    ...screening,
+    points_earned: screening.pointsEarned,
+    created_at: screening.createdAt,
+    retry_at: screening.score < 60 ? nextJakartaDay(screening.createdAt) : null,
+  }) : null)
 })
 
 app.post('/api/screenings', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   const id = userId(req)
+  const latest = await prisma.screening.findFirst({ where: { userId: id }, orderBy: { createdAt: 'desc' } })
+  if (latest && latest.score < 60 && new Date() < nextJakartaDay(latest.createdAt)) {
+    return res.status(429).json({
+      message: 'Screening ulang baru dapat dilakukan besok.',
+      retry_at: nextJakartaDay(latest.createdAt),
+    })
+  }
   const existing = await prisma.screening.count({ where: { userId: id } })
   const points = existing === 0 ? 50 : 0
   const answers = req.body.answers as Record<string, string>
-  const risks = ['diabetes', 'hypertension', 'kidneyDisease', 'pregnant', 'breastfeeding'].filter((key) => answers[key] === 'Ya').length
+  const risks = ['diabetes', 'hypertension', 'kidneyDisease', 'pregnant', 'breastfeeding', 'medication'].filter((key) => answers[key] === 'Ya').length
   const score = Math.max(20, 100 - risks * 20)
-  const status = score >= 60 ? 'ready' : 'review'
+  const status = score >= 60 ? 'ready' : 'failed'
   const screening = await prisma.$transaction(async (tx) => {
     const saved = await tx.screening.create({ data: { userId: id, answers, score, status, pointsEarned: points } })
     if (points) {
@@ -260,7 +292,12 @@ app.post('/api/screenings', requireAuth, async (request, res) => {
     return saved
   })
   await syncBadges(id)
-  return res.status(201).json(json({ ...screening, points_earned: screening.pointsEarned, created_at: screening.createdAt }))
+  return res.status(201).json(json({
+    ...screening,
+    points_earned: screening.pointsEarned,
+    created_at: screening.createdAt,
+    retry_at: score < 60 ? nextJakartaDay(screening.createdAt) : null,
+  }))
 })
 
 app.get('/api/progress', requireAuth, async (request, res) => {

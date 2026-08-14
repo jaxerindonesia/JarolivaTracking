@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import {
   Bell, Zap, ChevronRight, Activity, Heart, Package,
-  PlayCircle, Users, Flame, Star, Droplets, CheckCircle2
+  PlayCircle, Users, Flame, Star, Droplets, CheckCircle2, X
 } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const [dashboardSession, setDashboardSession] = useState(null)
   const [consumedKeys, setConsumedKeys] = useState<string[]>([])
   const [databaseNotifications, setDatabaseNotifications] = useState<any[]>([])
+  const [selectedConsumption, setSelectedConsumption] = useState<any>(null)
   const isProgramActive = dashboardSession?.status === 'active'
   const sessionStart = dashboardSession?.start_time || '1970-01-01T00:00:00.000Z'
   const timer = useFastingTimer(sessionStart, activeSession.target_hours, isProgramActive ? null : sessionStart)
@@ -54,6 +56,11 @@ export default function Dashboard() {
     const done = !consumedKeys.includes(key)
     setConsumedKeys((current) => done ? [...current, key] : current.filter((item) => item !== key))
     await api(`/consumptions/${key}`, { method: 'PUT', body: JSON.stringify({ done }) })
+  }
+  const confirmConsumption = async () => {
+    if (!selectedConsumption) return
+    await toggleConsumption(selectedConsumption.id)
+    setSelectedConsumption(null)
   }
   const openConsumptionReminder = (item) => {
     const nextRead = readNotifications.includes(item.id) ? readNotifications : [...readNotifications, item.id]
@@ -253,7 +260,7 @@ export default function Dashboard() {
           {consumptionLog.map((item) => {
             const isDue = isConsumptionDue(item.time)
             const consumed = consumedKeys.includes(String(item.id))
-            return <div key={item.id} role="button" tabIndex={0} onClick={() => toggleConsumption(item.id)} className={`consumption-item${isDue ? ' consumption-item-due' : ''}`}>
+            return <div key={item.id} role="button" tabIndex={0} onClick={() => setSelectedConsumption(item)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedConsumption(item) }} className={`consumption-item${isDue ? ' consumption-item-due' : ''}`}>
               <div className="consumption-time-block">
                 <span className="consumption-time-text">{item.time}</span>
                 {consumed && (
@@ -275,6 +282,24 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {selectedConsumption && createPortal(
+        <div className="consumption-confirm-overlay" role="presentation" onMouseDown={() => setSelectedConsumption(null)}>
+          <section className="consumption-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="consumption-confirm-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="consumption-confirm-close" type="button" aria-label="Tutup" onClick={() => setSelectedConsumption(null)}><X size={18} /></button>
+            <div className="consumption-confirm-icon">{selectedConsumption.emoji}</div>
+            <small>{selectedConsumption.meal} · {selectedConsumption.time}</small>
+            <h2 id="consumption-confirm-title">{consumedKeys.includes(String(selectedConsumption.id)) ? 'Sudah selesai mengonsumsi?' : 'Waktunya konsumsi'}</h2>
+            <p>Apakah Anda akan mengonsumsi <strong>{selectedConsumption.items.replaceAll(' + ', ' dan ')}</strong>?</p>
+            <div className="consumption-confirm-detail">{selectedConsumption.detail}</div>
+            <div className="consumption-confirm-actions">
+              <button type="button" className="consumption-confirm-cancel" onClick={() => setSelectedConsumption(null)}>Nanti</button>
+              <button type="button" className="consumption-confirm-yes" onClick={confirmConsumption}><CheckCircle2 size={17} /> {consumedKeys.includes(String(selectedConsumption.id)) ? 'Batalkan tanda selesai' : 'Ya, sudah konsumsi'}</button>
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
 
       {/* Aksi Cepat */}
       <div className="quick-actions-section fade-in fade-in-delay-4">

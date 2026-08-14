@@ -84,7 +84,6 @@ export default function Login() {
       {googleClientId && <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={renderGoogleButton} />}
       {step === 'welcome' && (
         <section className="login-welcome" aria-labelledby="welcome-title">
-          <div className="login-mark"><span>ϟ</span></div>
           <img src="/jaxlab-logo.png" alt="JAXLAB+" />
           <h1 id="welcome-title">MEMBER AREA</h1>
           <p>Masuk untuk memulai perjalanan Fat Fasting 72 Jam bersama asisten digital JaxLab.</p>

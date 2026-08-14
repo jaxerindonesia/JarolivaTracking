@@ -1915,9 +1915,7 @@ img {
 /* ---- Authentication ---- */
 .auth-loading, .login-page { min-height: 100vh; display: grid; place-items: center; background: #f4f7fa; }
 .login-welcome { width: min(390px, calc(100% - 32px)); display: flex; flex-direction: column; align-items: center; text-align: center; }
-.login-mark { width: 64px; height: 64px; display: grid; place-items: center; margin-bottom: 20px; color: #fff; background: #06448d; border-radius: 16px; box-shadow: 0 10px 22px rgba(6,68,141,.24); }
-.login-mark span { font-size: 38px; font-weight: 300; transform: rotate(8deg); }
-.login-welcome > img { width: 190px; height: 58px; object-fit: contain; }
+.login-welcome > img { width: 225px; height: 70px; object-fit: contain; }
 .login-welcome h1 { margin-top: 2px; color: #71c900; font-size: 14px; letter-spacing: 2px; }
 .login-welcome p { max-width: 340px; margin: 20px 0 26px; color: #51647b; font-size: 14px; line-height: 1.65; }
 .login-primary { width: 100%; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #fff; background: #06448d; border-radius: 11px; font-weight: 700; transition: transform .15s, background .15s; }

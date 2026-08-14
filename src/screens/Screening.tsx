@@ -38,16 +38,31 @@ export default function Screening() {
   const navigate = (path) => router.push(path)
   const [step, setStep] = useState(1)
   const [showResult, setShowResult] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [freshResult, setFreshResult] = useState(false)
   const [form, setForm] = useState(initialForm)
+<<<<<<< HEAD
+  const [result, setResult] = useState(screeningResult)
+  useEffect(() => {
+    api<any>('/screenings/latest').then((saved) => {
+      if (!saved) return
+      setResult({ score: saved.score, status: saved.status, points_earned: saved.points_earned, breakdown: [
+=======
   const [result, setResult] = useState<any>(screeningResult)
   useEffect(() => {
     api<any>('/screenings/latest').then((saved) => {
       if (!saved || saved.score >= 60 || !saved.retry_at || new Date() >= new Date(saved.retry_at)) return
       setResult({ ...saved, breakdown: [
+>>>>>>> origin/Fama
         { label: 'Kesiapan Tubuh', value: saved.score }, { label: 'Hidrasi', value: saved.score },
         { label: 'Kondisi Mental', value: saved.score }, { label: 'Persiapan', value: saved.score },
       ] })
       setShowResult(true)
+<<<<<<< HEAD
+    }).catch(() => {}).finally(() => setLoading(false))
+  }, [])
+  const setField = (name, value) => setForm((current) => ({ ...current, [name]: value }))
+=======
     }).catch(() => {})
   }, [])
   const setField = (name, value) => setForm((current) => ({
@@ -55,6 +70,7 @@ export default function Screening() {
     [name]: value,
     ...(name === 'medication' && value === 'Tidak' ? { medicationDetails: '' } : {}),
   }))
+>>>>>>> origin/Fama
   const bmi = useMemo(() => {
     const heightInMeters = Number(form.height) / 100
     return form.weight && heightInMeters ? (Number(form.weight) / heightInMeters ** 2).toFixed(1) : null
@@ -72,21 +88,32 @@ export default function Screening() {
         { label: 'Kesiapan Tubuh', value: saved.score }, { label: 'Hidrasi', value: saved.score },
         { label: 'Kondisi Mental', value: saved.score }, { label: 'Persiapan', value: saved.score },
       ] })
+      setFreshResult(true)
       setShowResult(true)
     }
     else setStep((current) => current + 1)
   }
+
+  if (loading) return <div className="auth-loading">Memuat hasil screening...</div>
 
   if (showResult) {
     const passed = result.score >= 60
     return (
       <div className="screening-page screening-result-page fade-in">
         <div className="page-header screening-page-header"><h1 className="page-title">Hasil Screening</h1><p className="page-subtitle">Berdasarkan jawaban Anda</p></div>
+<<<<<<< HEAD
+        <div className="screening-result-card"><div className="screening-check-icon"><Check size={28} strokeWidth={3} /></div><h2 className="screening-title">Anda Siap Memulai FF72!</h2><p className="screening-desc">Berdasarkan hasil screening, tubuh Anda dalam kondisi yang sesuai untuk menjalani program Fat Fasting 72 Jam.</p></div>
+        <div className="indikator-card"><div className="indikator-header">INDIKATOR KESIAPAN</div><div className="indikator-body"><div className="indikator-circle"><CircularProgress size={100} strokeWidth={10} percentage={result.score} color="#71c700" trackColor="#e5ebf2"><div className="indikator-circle-inner"><div className="indikator-score">{result.score}</div><div className="indikator-score-sub">/ 100</div></div></CircularProgress></div><div className="indikator-list">{result.breakdown.map((item) => <div key={item.label} className="indikator-row"><div className="indikator-label-row"><span>{item.label}</span><strong>{item.value}%</strong></div><div className="progress-bar-wrap"><div className="progress-bar-fill" style={{ width: `${item.value}%` }} /></div></div>)}</div></div></div>
+        <div className="points-banner"><span className="points-confetti">🎉</span><div className="points-banner-text"><strong>{freshResult && result.points_earned > 0 ? `+${result.points_earned} Poin Didapat!` : 'Hasil Screening Tersimpan'}</strong><span>Hasil screening terakhir Anda tetap tersimpan.</span></div></div>
+        <button className="screening-program-button" onClick={() => navigate('/program')}><CheckCircle2 size={17} /> Lanjut ke Program FF72 <ArrowRight size={17} /></button>
+        <button className="screening-reset" onClick={() => { setForm(initialForm); setStep(1); setFreshResult(false); setShowResult(false) }}>Isi Ulang Screening</button>
+=======
         <div className={`screening-result-card${passed ? '' : ' screening-result-failed'}`}><div className="screening-check-icon">{passed ? <Check size={28} strokeWidth={3} /> : <Stethoscope size={28} />}</div><h2 className="screening-title">{passed ? 'Anda Siap Memulai FF72!' : 'Screening Belum Lulus'}</h2><p className="screening-desc">{passed ? 'Berdasarkan hasil screening, tubuh Anda dalam kondisi yang sesuai untuk menjalani program Fat Fasting 72 Jam.' : 'Skor di bawah 60 belum memenuhi syarat Program FF72. Silakan istirahat dan lakukan screening ulang besok.'}</p></div>
         <div className="indikator-card"><div className="indikator-header">INDIKATOR KESIAPAN</div><div className="indikator-body"><div className="indikator-circle"><CircularProgress size={100} strokeWidth={10} percentage={result.score} color={passed ? '#71c700' : '#ef5361'} trackColor="#e5ebf2"><div className="indikator-circle-inner"><div className="indikator-score">{result.score}</div><div className="indikator-score-sub">/ 100</div></div></CircularProgress></div><div className="indikator-list">{result.breakdown.map((item) => <div key={item.label} className="indikator-row"><div className="indikator-label-row"><span>{item.label}</span><strong>{item.value}%</strong></div><div className="progress-bar-wrap"><div className="progress-bar-fill" style={{ width: `${item.value}%` }} /></div></div>)}</div></div></div>
         <div className="points-banner"><span className="points-confetti">🎉</span><div className="points-banner-text"><strong>+{result.points_earned} Poin Didapat!</strong><span>Hasil screening sudah disimpan ke database.</span></div></div>
         {passed ? <button className="screening-program-button" onClick={() => navigate('/program')}><CheckCircle2 size={17} /> Lanjut ke Program FF72 <ArrowRight size={17} /></button> : <div className="screening-retry-notice"><Clock3 size={17} /> Screening ulang tersedia besok.</div>}
         {passed && <button className="screening-reset" onClick={() => { setForm(initialForm); setStep(1); setShowResult(false) }}>Isi ulang screening</button>}
+>>>>>>> origin/Fama
       </div>
     )
   }

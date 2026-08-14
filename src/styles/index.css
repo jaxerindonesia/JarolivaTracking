@@ -662,6 +662,8 @@ img {
 }
 
 .water-pill {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   height: 28px;
   border-radius: var(--radius-full);
@@ -671,13 +673,46 @@ img {
 }
 
 .water-pill.filled {
-  background: var(--color-green);
-  border-color: var(--color-green);
+  background: linear-gradient(180deg, #55c9ff 0%, #168cff 58%, #0870d8 100%);
+  border-color: #168cff;
+  box-shadow: 0 3px 8px rgba(22, 140, 255, .22);
+}
+
+.water-pill.filled::before {
+  content: '';
+  position: absolute;
+  width: 130%;
+  height: 14px;
+  left: -15%;
+  top: -8px;
+  background: rgba(255,255,255,.32);
+  border-radius: 45%;
+  animation: waterWave 2.4s ease-in-out infinite;
+}
+
+.water-pill.filled::after {
+  content: '💧';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 12px;
+  filter: saturate(.75) brightness(1.25);
 }
 
 .water-pill.partial {
-  background: linear-gradient(90deg, var(--color-green) 50%, transparent 50%);
-  border-color: var(--color-green);
+  background: linear-gradient(90deg, #168cff 50%, transparent 50%);
+  border-color: #168cff;
+}
+
+@keyframes waterWave {
+  0%, 100% { transform: translateX(-5%) rotate(0deg); }
+  50% { transform: translateX(5%) rotate(3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water-pill.filled::before { animation: none; }
 }
 
 /* ---- Product Scroll ---- */

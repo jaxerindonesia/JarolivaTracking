@@ -20,6 +20,7 @@ export default function Dashboard() {
   const navigate = (path) => router.push(path)
   const { user } = useAuth()
   const [dashboardSession, setDashboardSession] = useState(null)
+  const [todayWaterGlasses, setTodayWaterGlasses] = useState(0)
   const [consumedKeys, setConsumedKeys] = useState<string[]>([])
   const [databaseNotifications, setDatabaseNotifications] = useState<any[]>([])
   const [selectedConsumption, setSelectedConsumption] = useState<any>(null)
@@ -31,7 +32,7 @@ export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false)
   const notificationRef = useRef(null)
   const dueConsumptions = consumptionLog.filter((item) => isConsumptionDue(item.time))
-  const todayKey = new Date().toLocaleDateString('en-CA')
+  const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
   const notificationStorageKey = `jaxlab-consumption-notifications-${todayKey}`
   const [readNotifications, setReadNotifications] = useState(() => {
     try { return JSON.parse(localStorage.getItem(notificationStorageKey)) || [] } catch { return [] }
@@ -39,7 +40,13 @@ export default function Dashboard() {
   const unreadConsumptions = dueConsumptions.filter((item) => !readNotifications.includes(item.id))
   const unreadDatabaseNotifications = databaseNotifications.filter((item) => !item.read_at)
   useEffect(() => {
-    api('/program').then((data) => setDashboardSession(data.session)).catch(() => setDashboardSession(null))
+    api<any>('/program').then((data) => {
+      setDashboardSession(data.session)
+      const latestTodayCheckin = data.checkins.find((item) =>
+        new Date(item.created_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }) === todayKey
+      )
+      setTodayWaterGlasses(Math.min(userStats.water_goal, Math.max(0, Number(latestTodayCheckin?.water_glasses) || 0)))
+    }).catch(() => { setDashboardSession(null); setTodayWaterGlasses(0) })
     api<string[]>('/consumptions/today').then(setConsumedKeys).catch(() => {})
     api<any[]>('/notifications').then(setDatabaseNotifications).catch(() => {})
   }, [])
@@ -196,14 +203,14 @@ export default function Dashboard() {
             </span>
           </div>
           <span className="mission-count">
-            {userStats.water_glasses} / {userStats.water_goal}
+            {todayWaterGlasses} / {userStats.water_goal}
           </span>
         </div>
         <div className="water-pills">
           {Array.from({ length: userStats.water_goal }).map((_, i) => (
             <div
               key={i}
-              className={`water-pill${i < userStats.water_glasses ? ' filled' : ''}`}
+              className={`water-pill${i < todayWaterGlasses ? ' filled' : ''}`}
               title={`Gelas ke-${i + 1}`}
             />
           ))}

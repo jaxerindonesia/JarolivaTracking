@@ -6,6 +6,7 @@ import { useFastingTimer } from '../hooks/useFastingTimer'
 import { activeSession, products } from '../data/mockData'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api } from '../lib/api'
+import { useRouter } from 'next/navigation'
 
 const tabs = ['Tracker', 'Timeline', 'Gula Darah', 'Protokol']
 const STORAGE_KEY = 'jaxlab-ff72-session'
@@ -33,6 +34,7 @@ const getSavedList = (key) => {
 }
 
 export default function ProgramFF72() {
+  const router = useRouter()
   const savedSession = getSavedSession()
   const [activeTab, setActiveTab] = useState('Tracker')
   const [showStopModal, setShowStopModal] = useState(false)
@@ -53,6 +55,8 @@ export default function ProgramFF72() {
   const [glucoseValue, setGlucoseValue] = useState('')
   const [pointNotice, setPointNotice] = useState(false)
   const [sessionId, setSessionId] = useState(null)
+  const [screeningCompleted, setScreeningCompleted] = useState(false)
+  const [screeningScore, setScreeningScore] = useState<number | null>(null)
   const timer = useFastingTimer(sessionStart, activeSession.target_hours, stoppedAt)
   const stopReasons = ['Sangat lapar', 'Pusing', 'Lemas', 'Mual', 'Gula darah turun', 'Keluhan lainnya']
   const conditions = [
@@ -72,6 +76,8 @@ export default function ProgramFF72() {
         setSessionId(data.session.id); setSessionStart(data.session.start_time)
         setStoppedAt(data.session.end_time); setProgramStatus(data.session.status)
       } else setProgramStatus('setup')
+      setScreeningCompleted(Boolean(data.screeningCompleted))
+      setScreeningScore(data.screeningScore)
       setSavedCheckins(data.checkins.map((item) => ({ ...item, waterGlasses: item.water_glasses, jarolivaTaken: item.jaroliva_taken ? 'Ya' : 'Tidak' })))
       setSavedGlucose(data.glucose)
     }).catch(() => {})
@@ -121,6 +127,7 @@ export default function ProgramFF72() {
   }
 
   const activateProgram = async () => {
+    if (!screeningCompleted) return
     const startTime = new Date(selectedStart).toISOString()
     const saved = await api('/program/start', { method: 'POST', body: JSON.stringify({ startTime }) })
     setSessionId(saved.id)
@@ -138,6 +145,17 @@ export default function ProgramFF72() {
           <p className="page-subtitle">Fat Fasting 72 Jam JaxLab</p>
         </div>
 
+        {!screeningCompleted && (
+          <aside className="program-screening-warning" role="alert">
+            <AlertTriangle size={20} />
+            <div>
+              <strong>{screeningScore !== null ? 'Screening belum lulus' : 'Screening diperlukan'}</strong>
+              <p>{screeningScore !== null ? `Skor Anda ${screeningScore}/100. Screening ulang dapat dilakukan besok.` : 'Selesaikan screening kesehatan terlebih dahulu untuk memulai program.'}</p>
+              <button type="button" onClick={() => router.push('/screening')}>Ke halaman Screening →</button>
+            </div>
+          </aside>
+        )}
+
         <section className="program-stopped-card">
           <div className="program-stopped-emoji" aria-hidden="true">💪</div>
           <h2>Program Dihentikan</h2>
@@ -147,7 +165,7 @@ export default function ProgramFF72() {
           </p>
         </section>
 
-        <button className="program-restart-button" type="button" onClick={startNewProgram}>
+        <button className="program-restart-button" type="button" disabled={!screeningCompleted} onClick={startNewProgram}>
           Mulai Program Baru
         </button>
       </div>
@@ -163,6 +181,17 @@ export default function ProgramFF72() {
           <h1 className="page-title">Program FF72</h1>
           <p className="page-subtitle">Fat Fasting 72 Jam JaxLab</p>
         </div>
+
+        {!screeningCompleted && (
+          <aside className="program-screening-warning" role="alert">
+            <AlertTriangle size={20} />
+            <div>
+              <strong>{screeningScore !== null ? 'Screening belum lulus' : 'Screening diperlukan'}</strong>
+              <p>{screeningScore !== null ? `Skor Anda ${screeningScore}/100. Screening ulang dapat dilakukan besok.` : 'Selesaikan screening kesehatan terlebih dahulu untuk memulai program.'}</p>
+              <button type="button" onClick={() => router.push('/screening')}>Ke halaman Screening →</button>
+            </div>
+          </aside>
+        )}
 
         <section className="program-setup-hero">
           <Zap size={42} />
@@ -198,7 +227,7 @@ export default function ProgramFF72() {
           ].map((item) => <p key={item}><CheckCircle2 size={16} /> {item}</p>)}
         </section>
 
-        <button className="program-start-button" type="button" onClick={activateProgram}>
+        <button className="program-start-button" type="button" disabled={!screeningCompleted} onClick={activateProgram}>
           <Zap size={18} /> Mulai Fat Fasting Sekarang
         </button>
       </div>

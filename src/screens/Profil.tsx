@@ -108,8 +108,8 @@ export default function Profil() {
         <div className="profile-screening-content">
           <div className="screening-score"><span>{screeningResult.score}</span><small>/ 100</small></div>
           <div>
-            <div className="screening-ready"><ShieldCheck /> Siap Mengikuti FF72</div>
-            <p>Kondisi tubuh Anda dinilai siap untuk menjalankan program.</p>
+            <div className={`screening-ready${screeningResult.score < 60 ? ' screening-not-ready' : ''}`}><ShieldCheck /> {screeningResult.score >= 60 ? 'Siap Mengikuti FF72' : 'Tidak Lulus'}</div>
+            <p>{screeningResult.score >= 60 ? 'Kondisi tubuh Anda dinilai siap untuk menjalankan program.' : 'Screening ulang dapat dilakukan besok.'}</p>
           </div>
         </div>
       </section>

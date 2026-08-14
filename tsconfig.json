@@ -39,8 +39,12 @@
     "next-env.d.ts",
     "app/**/*.js",
     "app/**/*.jsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
     "src/**/*.js",
     "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "server/**/*.ts",
     ".next/types/**/*.ts"
   ],

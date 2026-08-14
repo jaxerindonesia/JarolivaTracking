@@ -3,7 +3,7 @@
 ## Setup Next.js, Prisma, dan PostgreSQL
 
 1. Buat database PostgreSQL bernama `jaxlab`.
-2. Salin `.env.example` menjadi `.env`, kemudian sesuaikan `DATABASE_URL` dan `JWT_SECRET`.
+2. Salin `.env.example` menjadi `.env`, kemudian sesuaikan `DATABASE_URL`, `JWT_SECRET`, dan `GOOGLE_CLIENT_ID`. Frontend otomatis memakai Google Client ID yang sama; `NEXT_PUBLIC_GOOGLE_CLIENT_ID` hanya diperlukan jika frontend menggunakan client ID yang berbeda.
 3. Untuk database baru, buat tabel dengan `npm run db:migrate -- --name init`.
 4. Jika database berasal dari versi lama dan tabelnya sudah ada, tandai migration awal dengan `npm run db:baseline` (cukup sekali).
 5. Generate Prisma Client dengan `npm run db:generate`.

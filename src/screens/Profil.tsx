@@ -47,7 +47,13 @@ export default function Profil() {
   ]
   const update = (key) => (event) => setForm({ ...form, [key]: event.target.value })
   const saveProfile = async (event) => {
-    event.preventDefault(); setSaving(true); setError('')
+    event.preventDefault()
+    const incomplete = Object.values(form).some((value) => String(value).trim() === '')
+    if (incomplete) {
+      setError('Semua data diri wajib diisi sebelum profil disimpan.')
+      return
+    }
+    setSaving(true); setError('')
     try { const updated = await api('/me', { method: 'PUT', body: JSON.stringify(form) }); setUser(updated); setEditing(false) }
     catch (e) { setError(e.message) } finally { setSaving(false) }
   }
@@ -84,12 +90,12 @@ export default function Profil() {
         {editing ? <form className="profile-edit-form" onSubmit={saveProfile}>
           <label>Nama Lengkap<input required value={form.name} onChange={update('name')} /></label>
           <label>Email<input disabled value={user.email} /></label>
-          <label>No. Telepon<input value={form.phone} onChange={update('phone')} placeholder="08xxxxxxxxxx" /></label>
-          <label>Tanggal Lahir<input type="date" value={form.birthDate} onChange={update('birthDate')} /></label>
-          <label>Jenis Kelamin<select value={form.gender} onChange={update('gender')}><option value="">Pilih</option><option>Laki-laki</option><option>Perempuan</option></select></label>
-          <label>Kota<input value={form.city} onChange={update('city')} /></label>
-          <label>Berat Badan (kg)<input type="number" min="20" max="400" step="0.1" value={form.weightKg} onChange={update('weightKg')} /></label>
-          <label>Tinggi Badan (cm)<input type="number" min="80" max="250" step="0.1" value={form.heightCm} onChange={update('heightCm')} /></label>
+          <label>No. Telepon<input required value={form.phone} onChange={update('phone')} placeholder="08xxxxxxxxxx" /></label>
+          <label>Tanggal Lahir<input required type="date" value={form.birthDate} onChange={update('birthDate')} /></label>
+          <label>Jenis Kelamin<select required value={form.gender} onChange={update('gender')}><option value="">Pilih</option><option>Laki-laki</option><option>Perempuan</option></select></label>
+          <label>Kota<input required value={form.city} onChange={update('city')} /></label>
+          <label>Berat Badan (kg)<input required type="number" min="20" max="400" step="0.1" value={form.weightKg} onChange={update('weightKg')} /></label>
+          <label>Tinggi Badan (cm)<input required type="number" min="80" max="250" step="0.1" value={form.heightCm} onChange={update('heightCm')} /></label>
           {error && <div className="profile-edit-error">{error}</div>}
           <button className="profile-save-button" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Profil'}</button>
         </form> : <div className="profile-details">

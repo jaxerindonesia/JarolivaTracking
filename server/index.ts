@@ -142,10 +142,13 @@ app.get('/api/me', requireAuth, async (request, res) => {
 app.put('/api/me', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   const body = req.body as Record<string, string>
-  if (!body.name?.trim()) return res.status(400).json({ message: 'Nama wajib diisi.' })
-  const weight = body.weightKg === '' ? null : Number(body.weightKg)
-  const height = body.heightCm === '' ? null : Number(body.heightCm)
-  if ((weight && (weight < 20 || weight > 400)) || (height && (height < 80 || height > 250))) {
+  const required = ['name', 'phone', 'birthDate', 'gender', 'city', 'weightKg', 'heightCm']
+  if (required.some((key) => !body[key]?.trim())) {
+    return res.status(400).json({ message: 'Semua data diri wajib diisi sebelum profil disimpan.' })
+  }
+  const weight = Number(body.weightKg)
+  const height = Number(body.heightCm)
+  if (!Number.isFinite(weight) || !Number.isFinite(height) || weight < 20 || weight > 400 || height < 80 || height > 250) {
     return res.status(400).json({ message: 'Berat atau tinggi tidak valid.' })
   }
   const user = await prisma.user.update({ where: { id: userId(req) }, data: {

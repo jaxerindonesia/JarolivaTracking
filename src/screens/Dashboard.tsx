@@ -21,6 +21,8 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [dashboardSession, setDashboardSession] = useState(null)
   const [todayWaterGlasses, setTodayWaterGlasses] = useState(0)
+  const [latestGlucose, setLatestGlucose] = useState<number | null>(null)
+  const [latestKetone, setLatestKetone] = useState<number | null>(null)
   const [consumedKeys, setConsumedKeys] = useState<string[]>([])
   const [databaseNotifications, setDatabaseNotifications] = useState<any[]>([])
   const [selectedConsumption, setSelectedConsumption] = useState<any>(null)
@@ -39,6 +41,9 @@ export default function Dashboard() {
   })
   const unreadConsumptions = dueConsumptions.filter((item) => !readNotifications.includes(item.id))
   const unreadDatabaseNotifications = databaseNotifications.filter((item) => !item.read_at)
+  const gki = latestGlucose !== null && latestKetone !== null && latestKetone > 0
+    ? latestGlucose / (18 * latestKetone)
+    : null
   useEffect(() => {
     api<any>('/program').then((data) => {
       setDashboardSession(data.session)
@@ -46,6 +51,10 @@ export default function Dashboard() {
         new Date(item.created_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }) === todayKey
       )
       setTodayWaterGlasses(Math.min(userStats.water_goal, Math.max(0, Number(latestTodayCheckin?.water_glasses) || 0)))
+      const glucose = data.glucose?.at(-1)
+      const ketone = data.ketones?.at(-1)
+      setLatestGlucose(glucose ? Number(glucose.value) : null)
+      setLatestKetone(ketone ? Number(ketone.value) : null)
     }).catch(() => { setDashboardSession(null); setTodayWaterGlasses(0) })
     api<string[]>('/consumptions/today').then(setConsumedKeys).catch(() => {})
     api<any[]>('/notifications').then(setDatabaseNotifications).catch(() => {})
@@ -173,21 +182,21 @@ export default function Dashboard() {
         <div className="stats-row">
           <div className="stat-item">
             <span className="stat-icon">🔬</span>
-            <span className="stat-value">{userStats.ketone}</span>
+            <span className="stat-value">{latestKetone ?? '—'}</span>
             <span className="stat-label">Ketone</span>
             <span className="stat-unit">mmol/L</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">🩸</span>
-            <span className="stat-value">{userStats.glucose}</span>
+            <span className="stat-value">{latestGlucose ?? '—'}</span>
             <span className="stat-label">Glucose</span>
             <span className="stat-unit">mg/dL</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">⚖️</span>
-            <span className="stat-value">{userStats.weight}</span>
-            <span className="stat-label">Weight</span>
-            <span className="stat-unit">kg</span>
+            <span className="stat-value">{gki === null ? '—' : gki.toFixed(2)}</span>
+            <span className="stat-label">GKI Test</span>
+            <span className="stat-unit">Glucose ÷ (18 × Ketone)</span>
           </div>
         </div>
       </div>

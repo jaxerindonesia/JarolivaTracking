@@ -43,6 +43,11 @@ const glucoseDto = (item: Record<string, unknown>) => json({
   value: item.value, unit: item.unit, logged_at: item.loggedAt,
 })
 
+const ketoneDto = (item: Record<string, unknown>) => json({
+  id: item.id, user_id: item.userId, session_id: item.sessionId, phase: item.phase,
+  value: item.value, unit: item.unit, logged_at: item.loggedAt,
+})
+
 const startOfToday = () => {
   const date = new Date()
   return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -168,10 +173,11 @@ app.put('/api/me', requireAuth, async (request, res) => {
 app.get('/api/program', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   const id = userId(req)
-  const [session, checkins, glucose, latestScreening] = await Promise.all([
+  const [session, checkins, glucose, ketones, latestScreening] = await Promise.all([
     prisma.fastingSession.findFirst({ where: { userId: id }, orderBy: { createdAt: 'desc' } }),
     prisma.checkin.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' } }),
     prisma.glucoseLog.findMany({ where: { userId: id }, orderBy: { loggedAt: 'asc' } }),
+    prisma.ketoneLog.findMany({ where: { userId: id }, orderBy: { loggedAt: 'asc' } }),
     prisma.screening.findFirst({ where: { userId: id }, orderBy: { createdAt: 'desc' } }),
   ])
   let currentSession = session
@@ -190,6 +196,7 @@ app.get('/api/program', requireAuth, async (request, res) => {
     session: currentSession ? sessionDto(currentSession) : null,
     checkins: checkins.map(checkinDto),
     glucose: glucose.map(glucoseDto),
+    ketones: ketones.map(ketoneDto),
     screeningCompleted: Boolean(latestScreening && latestScreening.score >= 60),
     screeningScore: latestScreening?.score ?? null,
     screeningRetryAt: latestScreening && latestScreening.score < 60 ? nextJakartaDay(latestScreening.createdAt) : null,
@@ -254,6 +261,22 @@ app.post('/api/glucose', requireAuth, async (request, res) => {
     } })
     return res.status(201).json(glucoseDto(saved))
   } catch { return res.status(400).json({ message: 'Nilai gula darah tidak valid.' }) }
+})
+
+app.post('/api/ketones', requireAuth, async (request, res) => {
+  const req = request as AuthRequest
+  const body = req.body
+  const value = Number(body.value)
+  if (!Number.isFinite(value) || value < 0 || value > 20) {
+    return res.status(400).json({ message: 'Nilai ketone harus antara 0 dan 20 mmol/L.' })
+  }
+  try {
+    const saved = await prisma.ketoneLog.create({ data: {
+      userId: userId(req), sessionId: body.sessionId ? BigInt(body.sessionId) : null,
+      phase: body.phase, value,
+    } })
+    return res.status(201).json(ketoneDto(saved))
+  } catch { return res.status(400).json({ message: 'Nilai ketone tidak valid.' }) }
 })
 
 app.get('/api/screenings/latest', requireAuth, async (request, res) => {

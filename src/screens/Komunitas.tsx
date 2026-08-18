@@ -33,40 +33,6 @@ const benefits = [
   },
 ]
 
-const qrPattern = [
-  '111111101011101111111',
-  '100000101110101000001',
-  '101110100010101011101',
-  '101110101101101011101',
-  '101110100111101011101',
-  '100000101010101000001',
-  '111111101010101111111',
-  '000000001101100000000',
-  '101011111001011101101',
-  '011100001111100010010',
-  '110111101001011110111',
-  '001001010110110101000',
-  '111010111011101011101',
-  '000000001101001010100',
-  '111111101011111110111',
-  '100000101110001010000',
-  '101110101011111011101',
-  '101110100100101001100',
-  '101110101111111101111',
-  '100000101001000100010',
-  '111111101110111101101',
-]
-
-function CommunityQr() {
-  return (
-    <div className="community-qr" aria-label="QR code komunitas WhatsApp">
-      {qrPattern.join('').split('').map((cell, index) => (
-        <span key={index} className={cell === '1' ? 'filled' : ''} />
-      ))}
-    </div>
-  )
-}
-
 export default function Komunitas() {
   return (
     <div className="community-page fade-in">
@@ -105,11 +71,11 @@ export default function Komunitas() {
       <section className="community-panel qr-panel">
         <div className="community-panel-title"><QrCode /> <span>SCAN QR CODE</span></div>
         <div className="qr-frame">
-          <div className="qr-poster">
-            <p>GreenZone Academy Indonesia</p>
-            <CommunityQr />
-            <small>Scan untuk bergabung</small>
-          </div>
+          <img
+            className="community-qr-image"
+            src="/barcodewa.jpeg"
+            alt="QR WhatsApp GreenZone Academy Indonesia"
+          />
         </div>
         <h3>GreenZone Academy Indonesia</h3>
         <p>Scan menggunakan kamera WhatsApp untuk bergabung</p>

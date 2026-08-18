@@ -2564,21 +2564,15 @@ img {
 .community-panel-title { display: flex; align-items: center; gap: 10px; color: #00458e; font-size: 12px; font-weight: 800; letter-spacing: .02em; }
 .community-panel-title svg { width: 17px; height: 17px; }
 .qr-frame {
-  width: 245px;
-  height: 245px;
-  display: grid;
-  place-items: center;
+  width: min(280px, 100%);
   margin: 16px auto;
+  overflow: hidden;
   border: 1px solid #d5dee9;
   border-radius: 17px;
   box-shadow: 0 2px 6px rgba(13,27,42,.12);
+  background: #20c46b;
 }
-.qr-poster { width: 98px; height: 208px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: white; background: #20c46b; }
-.qr-poster p { max-width: 80px; font-size: 5px; text-align: center; line-height: 1.2; }
-.qr-poster small { font-size: 4px; }
-.community-qr { display: grid; grid-template-columns: repeat(21, 3px); grid-template-rows: repeat(21, 3px); gap: 0; padding: 5px; background: white; border-radius: 3px; }
-.community-qr span { width: 3px; height: 3px; background: white; }
-.community-qr span.filled { background: #111; }
+.community-qr-image { display: block; width: 100%; height: auto; }
 .qr-panel > h3 { font-family: var(--font-body); font-size: 14px; text-align: center; }
 .qr-panel > p { color: var(--color-text-secondary); font-size: 11.5px; text-align: center; }
 

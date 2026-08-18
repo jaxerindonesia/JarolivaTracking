@@ -152,6 +152,31 @@ export default function ProgramFF72() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ status: 'active', startTime }))
   }
 
+  if (programStatus === 'completed') {
+    return (
+      <div className="program-page program-stopped-page fade-in">
+        <div className="page-header">
+          <h1 className="page-title">Program FF72</h1>
+          <p className="page-subtitle">Fat Fasting 72 Jam JaxLab</p>
+        </div>
+
+        <section className="program-stopped-card">
+          <div className="program-stopped-emoji" aria-hidden="true">🎉</div>
+          <h2>Program Berhasil Diselesaikan!</h2>
+          <p>Selamat, Anda telah menyelesaikan Fat Fasting selama 72 jam.</p>
+          <p className="program-stopped-duration">
+            Durasi puasa: <strong>{timer.timeString}</strong>
+          </p>
+          <p><strong>+500 poin</strong> telah ditambahkan ke reward Anda.</p>
+        </section>
+
+        <button className="program-restart-button" type="button" disabled={!screeningCompleted} onClick={startNewProgram}>
+          Mulai Program Baru
+        </button>
+      </div>
+    )
+  }
+
   if (programStatus === 'stopped') {
     return (
       <div className="program-page program-stopped-page fade-in">

@@ -48,6 +48,8 @@ export default function ProgramFF72() {
   const [activeTab, setActiveTab] = useState('Tracker')
   const [showStopModal, setShowStopModal] = useState(false)
   const [stopReason, setStopReason] = useState('')
+  const [stopError, setStopError] = useState('')
+  const [isStopping, setIsStopping] = useState(false)
   const [programStatus, setProgramStatus] = useState(savedSession?.status || 'active')
   const [sessionStart, setSessionStart] = useState(savedSession?.startTime || activeSession.start_time)
   const [stoppedAt, setStoppedAt] = useState(savedSession?.stoppedAt || null)
@@ -155,15 +157,31 @@ export default function ProgramFF72() {
   }
 
   const stopProgram = async () => {
-    if (!stopReason) return
-    const saved = await api('/program/stop', { method: 'POST', body: JSON.stringify({ sessionId, reason: stopReason }) })
-    const stoppedTime = saved.end_time
-    setStoppedAt(stoppedTime)
-    setProgramStatus('stopped')
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      status: 'stopped', startTime: sessionStart, stoppedAt: stoppedTime, stopReason
-    }))
-    setShowStopModal(false)
+    if (!stopReason || isStopping) return
+    setStopError('')
+    setIsStopping(true)
+    try {
+      const saved = await api('/program/stop', { method: 'POST', body: JSON.stringify({ sessionId, reason: stopReason }) })
+      const stoppedTime = saved.end_time
+      setStoppedAt(stoppedTime)
+      setProgramStatus('stopped')
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        status: 'stopped', startTime: sessionStart, stoppedAt: stoppedTime, stopReason
+      }))
+      setShowStopModal(false)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Program gagal dihentikan.'
+      if (message === 'Sesi aktif tidak ditemukan.') {
+        setSessionId(null)
+        setProgramStatus('setup')
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ status: 'setup' }))
+        setShowStopModal(false)
+        return
+      }
+      setStopError(message)
+    } finally {
+      setIsStopping(false)
+    }
   }
 
   const startNewProgram = () => {
@@ -664,16 +682,18 @@ export default function ProgramFF72() {
               </ol>
             </div>
 
+            {stopError && <p className="stop-program-error" role="alert">{stopError}</p>}
+
             <div className="stop-modal-actions">
               <button className="stop-continue-button" onClick={() => setShowStopModal(false)}>
                 Tetap Lanjutkan
               </button>
               <button
                 className="stop-confirm-button"
-                disabled={!stopReason}
+                disabled={!stopReason || isStopping}
                 onClick={stopProgram}
               >
-                <Phone size={16} /> Hentikan
+                <Phone size={16} /> {isStopping ? 'Menghentikan...' : 'Hentikan'}
               </button>
             </div>
           </div>

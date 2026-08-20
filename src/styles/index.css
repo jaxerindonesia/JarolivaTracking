@@ -1948,6 +1948,7 @@ img {
 .login-card form > button { margin-top: 20px; }
 .login-card form > button:disabled { opacity: .6; }
 .login-error { padding: 10px 12px; margin-top: 13px; color: #b4232d; background: #fff0f2; border-radius: 10px; font-size: 12px; }
+.stop-program-error { padding: 10px 12px; margin: 12px 0 0; color: #b4232d; background: #fff0f2; border: 1px solid #f4c5ca; border-radius: 10px; font-size: 12px; font-weight: 600; }
 .login-switch { width: 100%; margin-top: 16px; color: #0750a0; font-size: 12px; font-weight: 600; }
 .login-methods { display: grid; gap: 10px; }
 .login-methods > button { min-height: 46px; display: grid; grid-template-columns: 25px 1fr 42px; align-items: center; padding: 0 14px; color: #111827; background: #fff; border: 1px solid #d4dce5; border-radius: 11px; font-size: 13px; font-weight: 650; text-align: left; }

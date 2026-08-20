@@ -263,6 +263,24 @@ app.post('/api/glucose', requireAuth, async (request, res) => {
   } catch { return res.status(400).json({ message: 'Nilai gula darah tidak valid.' }) }
 })
 
+app.patch('/api/glucose/:id', requireAuth, async (request, res) => {
+  const req = request as AuthRequest
+  const value = Number(req.body.value)
+  if (!Number.isInteger(value) || value < 20 || value > 600 || !req.body.phase) {
+    return res.status(400).json({ message: 'Nilai gula darah harus antara 20 dan 600 mg/dL.' })
+  }
+  try {
+    const logId = BigInt(String(req.params.id))
+    const changed = await prisma.glucoseLog.updateMany({
+      where: { id: logId, userId: userId(req) },
+      data: { phase: req.body.phase, value },
+    })
+    if (!changed.count) return res.status(404).json({ message: 'Catatan gula darah tidak ditemukan.' })
+    const saved = await prisma.glucoseLog.findUniqueOrThrow({ where: { id: logId } })
+    return res.json(glucoseDto(saved))
+  } catch { return res.status(400).json({ message: 'Catatan gula darah gagal diperbarui.' }) }
+})
+
 app.post('/api/ketones', requireAuth, async (request, res) => {
   const req = request as AuthRequest
   const body = req.body
@@ -277,6 +295,24 @@ app.post('/api/ketones', requireAuth, async (request, res) => {
     } })
     return res.status(201).json(ketoneDto(saved))
   } catch { return res.status(400).json({ message: 'Nilai ketone tidak valid.' }) }
+})
+
+app.patch('/api/ketones/:id', requireAuth, async (request, res) => {
+  const req = request as AuthRequest
+  const value = Number(req.body.value)
+  if (!Number.isFinite(value) || value < 0 || value > 20 || !req.body.phase) {
+    return res.status(400).json({ message: 'Nilai ketone harus antara 0 dan 20 mmol/L.' })
+  }
+  try {
+    const logId = BigInt(String(req.params.id))
+    const changed = await prisma.ketoneLog.updateMany({
+      where: { id: logId, userId: userId(req) },
+      data: { phase: req.body.phase, value },
+    })
+    if (!changed.count) return res.status(404).json({ message: 'Catatan ketone tidak ditemukan.' })
+    const saved = await prisma.ketoneLog.findUniqueOrThrow({ where: { id: logId } })
+    return res.json(ketoneDto(saved))
+  } catch { return res.status(400).json({ message: 'Catatan ketone gagal diperbarui.' }) }
 })
 
 app.get('/api/screenings/latest', requireAuth, async (request, res) => {

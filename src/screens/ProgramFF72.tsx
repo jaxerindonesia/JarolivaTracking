@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2, Clock3 } from 'lucide-react'
+import { ChevronRight, AlertTriangle, X, Square, Phone, Zap, CalendarDays, CheckCircle2, Clock3, Pencil } from 'lucide-react'
 import CircularProgress from '../components/CircularProgress'
 import { useFastingTimer } from '../hooks/useFastingTimer'
 import { activeSession, products } from '../data/mockData'
@@ -14,6 +14,14 @@ const CHECKINS_KEY = 'jaxlab-ff72-checkins'
 const GLUCOSE_KEY = 'jaxlab-ff72-glucose'
 const KETONE_KEY = 'jaxlab-ff72-ketones'
 const POINTS_KEY = 'jaxlab-reward-points'
+
+const getGkiResult = (value) => {
+  if (value < 1) return { label: 'Ketosis Sangat Dalam', tone: 'teal', description: 'Ketone sangat dominan dibandingkan glukosa.' }
+  if (value <= 3) return { label: 'Ketosis Dalam', tone: 'green', description: 'Ketone cukup dominan dan menunjukkan keadaan ketosis yang dalam.' }
+  if (value <= 6) return { label: 'Ketosis Sederhana', tone: 'yellow', description: 'Tubuh mulai menggunakan ketone secara lebih nyata sebagai sumber energi.' }
+  if (value <= 9) return { label: 'Ketosis Ringan', tone: 'orange', description: 'Tubuh mulai meningkatkan penggunaan lemak dan ketone.' }
+  return { label: 'Ketosis Minimum', tone: 'red', description: 'Glukosa masih relatif dominan dibandingkan ketone.' }
+}
 
 const toDateTimeLocal = (date) => {
   const offset = date.getTimezoneOffset() * 60000
@@ -56,8 +64,10 @@ export default function ProgramFF72() {
   const [savedKetones, setSavedKetones] = useState(() => getSavedList(KETONE_KEY))
   const [glucosePhase, setGlucosePhase] = useState('Sebelum Mulai')
   const [glucoseValue, setGlucoseValue] = useState('')
+  const [editingGlucoseId, setEditingGlucoseId] = useState<string | null>(null)
   const [ketonePhase, setKetonePhase] = useState('Sebelum Mulai')
   const [ketoneValue, setKetoneValue] = useState('')
+  const [editingKetoneId, setEditingKetoneId] = useState<string | null>(null)
   const [pointNotice, setPointNotice] = useState(false)
   const [sessionId, setSessionId] = useState(null)
   const [screeningCompleted, setScreeningCompleted] = useState(false)
@@ -74,6 +84,12 @@ export default function ProgramFF72() {
     const phaseLogs = savedGlucose.filter((log) => log.phase === phase)
     return { phase, value: phaseLogs.at(-1)?.value ?? fallback }
   })
+  const latestGlucose = savedGlucose.at(-1)?.value
+  const latestKetone = savedKetones.at(-1)?.value
+  const currentGki = latestGlucose !== undefined && latestKetone !== undefined && Number(latestKetone) > 0
+    ? Number(latestGlucose) / (18 * Number(latestKetone))
+    : null
+  const currentGkiResult = currentGki === null ? null : getGkiResult(currentGki)
 
   useEffect(() => {
     api('/program').then((data) => {
@@ -105,19 +121,37 @@ export default function ProgramFF72() {
   const saveGlucose = async () => {
     const value = Number(glucoseValue)
     if (!value || value < 20 || value > 600) return
-    const saved = await api('/glucose', { method: 'POST', body: JSON.stringify({ sessionId, phase: glucosePhase, value }) })
-    const next = [...savedGlucose, saved]
+    const saved = await api(editingGlucoseId ? `/glucose/${editingGlucoseId}` : '/glucose', {
+      method: editingGlucoseId ? 'PATCH' : 'POST',
+      body: JSON.stringify({ sessionId, phase: glucosePhase, value }),
+    })
+    const next = editingGlucoseId
+      ? savedGlucose.map((item) => String(item.id) === editingGlucoseId ? saved : item)
+      : [...savedGlucose, saved]
     setSavedGlucose(next); localStorage.setItem(GLUCOSE_KEY, JSON.stringify(next))
-    setGlucoseValue(''); setShowGlucoseModal(false)
+    setGlucoseValue(''); setEditingGlucoseId(null); setShowGlucoseModal(false)
   }
 
   const saveKetone = async () => {
     const value = Number(ketoneValue)
     if (!ketoneValue || !Number.isFinite(value) || value < 0 || value > 20) return
-    const saved = await api('/ketones', { method: 'POST', body: JSON.stringify({ sessionId, phase: ketonePhase, value }) })
-    const next = [...savedKetones, saved]
+    const saved = await api(editingKetoneId ? `/ketones/${editingKetoneId}` : '/ketones', {
+      method: editingKetoneId ? 'PATCH' : 'POST',
+      body: JSON.stringify({ sessionId, phase: ketonePhase, value }),
+    })
+    const next = editingKetoneId
+      ? savedKetones.map((item) => String(item.id) === editingKetoneId ? saved : item)
+      : [...savedKetones, saved]
     setSavedKetones(next); localStorage.setItem(KETONE_KEY, JSON.stringify(next))
-    setKetoneValue(''); setShowKetoneModal(false)
+    setKetoneValue(''); setEditingKetoneId(null); setShowKetoneModal(false)
+  }
+
+  const editGlucose = (log) => {
+    setEditingGlucoseId(String(log.id)); setGlucosePhase(log.phase); setGlucoseValue(String(log.value))
+  }
+
+  const editKetone = (log) => {
+    setEditingKetoneId(String(log.id)); setKetonePhase(log.phase); setKetoneValue(String(log.value))
   }
 
   const stopProgram = async () => {
@@ -391,7 +425,7 @@ export default function ProgramFF72() {
             <ChevronRight size={18} color="var(--color-text-muted)" />
           </button>
 
-          <button className="accordion-item program-action-item" onClick={() => setShowGlucoseModal(true)}>
+          <button className="accordion-item program-action-item" onClick={() => { setEditingGlucoseId(null); setGlucoseValue(''); setShowGlucoseModal(true) }}>
             <div className="accordion-left">
               <div className="accordion-icon">🩸</div>
               <div className="accordion-text">
@@ -402,7 +436,7 @@ export default function ProgramFF72() {
             <ChevronRight size={18} color="var(--color-text-muted)" />
           </button>
 
-          <button className="accordion-item program-action-item" onClick={() => setShowKetoneModal(true)}>
+          <button className="accordion-item program-action-item" onClick={() => { setEditingKetoneId(null); setKetoneValue(''); setShowKetoneModal(true) }}>
             <div className="accordion-left">
               <div className="accordion-icon">🧪</div>
               <div className="accordion-text">
@@ -446,6 +480,16 @@ export default function ProgramFF72() {
 
       {activeTab === 'Gula Darah' && (
         <div className="fade-in">
+          <section className="card program-gki-result">
+            <div className="program-gki-heading">
+              <div><span>HASIL GKI TEST</span><h3>{currentGki === null ? 'Belum tersedia' : currentGki.toFixed(2)}</h3></div>
+              {currentGkiResult && <b className={currentGkiResult.tone}>{currentGkiResult.label}</b>}
+            </div>
+            {currentGki !== null && currentGkiResult ? <>
+              <p>Anda berada pada kategori <strong>{currentGkiResult.label}</strong>. {currentGkiResult.description}</p>
+              <small>{latestGlucose} mg/dL ÷ 18 ÷ {latestKetone} mmol/L = {currentGki.toFixed(2)}</small>
+            </> : <p>Isi catatan gula darah dan ketone terlebih dahulu untuk melihat hasil serta kategori GKI Anda.</p>}
+          </section>
           <div className="card glucose-chart-card">
             <h3>GRAFIK GULA DARAH</h3>
             <div className="glucose-line-chart"><ResponsiveContainer width="100%" height="100%">
@@ -552,20 +596,34 @@ export default function ProgramFF72() {
       {showGlucoseModal && createPortal((
         <div className="stop-program-overlay" onMouseDown={() => setShowGlucoseModal(false)}><div className="program-form-modal" onMouseDown={(e) => e.stopPropagation()}>
           <button className="stop-modal-close" onClick={() => setShowGlucoseModal(false)}><X size={19} /></button>
-          <h2>Catat Gula Darah</h2><p>Masukkan nilai gula darah (mg/dL)</p><h4>FASE PENGUKURAN</h4>
+          <h2>{editingGlucoseId ? 'Edit Gula Darah' : 'Catat Gula Darah'}</h2><p>Masukkan nilai gula darah (mg/dL)</p><h4>FASE PENGUKURAN</h4>
           <div className="phase-grid">{['Sebelum Mulai','Hari ke-2 (opsional)','Hari ke-3','Setelah Selesai'].map(v => <button className={glucosePhase === v ? 'selected' : ''} key={v} onClick={() => setGlucosePhase(v)}>{v}</button>)}</div>
           <label className="glucose-label">Nilai gula darah (mg/dL)</label><input className="glucose-input" type="number" min="20" max="600" value={glucoseValue} onChange={(e) => setGlucoseValue(e.target.value)} placeholder="Contoh: 95" />
-          <button className="modal-save-button green" disabled={!glucoseValue} onClick={saveGlucose}>Simpan</button>
+          <button className="modal-save-button green" disabled={!glucoseValue} onClick={saveGlucose}>{editingGlucoseId ? 'Simpan Perubahan' : 'Simpan'}</button>
+          {savedGlucose.length > 0 && <div className="measurement-history">
+            <h4>RIWAYAT GULA DARAH</h4>
+            {savedGlucose.slice().reverse().map((log) => <div className="measurement-history-row" key={log.id}>
+              <div><strong>{log.value} mg/dL</strong><span>{log.phase} · {new Date(log.logged_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span></div>
+              <button type="button" onClick={() => editGlucose(log)} aria-label="Edit catatan gula darah"><Pencil size={15} /> Edit</button>
+            </div>)}
+          </div>}
         </div></div>
       ), document.body)}
 
       {showKetoneModal && createPortal((
         <div className="stop-program-overlay" onMouseDown={() => setShowKetoneModal(false)}><div className="program-form-modal" onMouseDown={(e) => e.stopPropagation()}>
           <button className="stop-modal-close" onClick={() => setShowKetoneModal(false)}><X size={19} /></button>
-          <h2>Catat Ketone</h2><p>Masukkan nilai ketone (mmol/L)</p><h4>FASE PENGUKURAN</h4>
+          <h2>{editingKetoneId ? 'Edit Ketone' : 'Catat Ketone'}</h2><p>Masukkan nilai ketone (mmol/L)</p><h4>FASE PENGUKURAN</h4>
           <div className="phase-grid">{['Sebelum Mulai','Hari ke-2 (opsional)','Hari ke-3','Setelah Selesai'].map(v => <button className={ketonePhase === v ? 'selected' : ''} key={v} onClick={() => setKetonePhase(v)}>{v}</button>)}</div>
           <label className="glucose-label">Nilai ketone (mmol/L)</label><input className="glucose-input" type="number" min="0" max="20" step="0.1" value={ketoneValue} onChange={(e) => setKetoneValue(e.target.value)} placeholder="Contoh: 1.5" />
-          <button className="modal-save-button green" disabled={!ketoneValue} onClick={saveKetone}>Simpan</button>
+          <button className="modal-save-button green" disabled={!ketoneValue} onClick={saveKetone}>{editingKetoneId ? 'Simpan Perubahan' : 'Simpan'}</button>
+          {savedKetones.length > 0 && <div className="measurement-history">
+            <h4>RIWAYAT KETONE</h4>
+            {savedKetones.slice().reverse().map((log) => <div className="measurement-history-row" key={log.id}>
+              <div><strong>{log.value} mmol/L</strong><span>{log.phase} · {new Date(log.logged_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span></div>
+              <button type="button" onClick={() => editKetone(log)} aria-label="Edit catatan ketone"><Pencil size={15} /> Edit</button>
+            </div>)}
+          </div>}
         </div></div>
       ), document.body)}
 

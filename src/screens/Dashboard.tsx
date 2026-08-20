@@ -15,6 +15,15 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 
+const getGkiCategory = (value: number | null) => {
+  if (value === null) return null
+  if (value < 1) return { label: 'Ketosis Sangat Dalam', tone: 'teal', description: 'Keadaan ketosis sangat dalam. Umumnya hanya dicapai pada puasa berkepanjangan atau intervensi ketogenik tertentu.' }
+  if (value <= 3) return { label: 'Ketosis Dalam', tone: 'green', description: 'Ketone cukup dominan dibandingkan glukosa dan menunjukkan keadaan ketosis yang dalam.' }
+  if (value <= 6) return { label: 'Ketosis Sederhana', tone: 'yellow', description: 'Tubuh mulai menggunakan ketone secara lebih nyata sebagai sumber energi.' }
+  if (value <= 9) return { label: 'Ketosis Ringan', tone: 'orange', description: 'Tubuh mulai meningkatkan penggunaan lemak dan ketone.' }
+  return { label: 'Ketosis Minimum', tone: 'red', description: 'Glukosa masih relatif dominan dibandingkan ketone.' }
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const navigate = (path) => router.push(path)
@@ -44,6 +53,7 @@ export default function Dashboard() {
   const gki = latestGlucose !== null && latestKetone !== null && latestKetone > 0
     ? latestGlucose / (18 * latestKetone)
     : null
+  const gkiCategory = getGkiCategory(gki)
   useEffect(() => {
     api<any>('/program').then((data) => {
       setDashboardSession(data.session)
@@ -201,6 +211,33 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <section className="gki-explanation-card fade-in fade-in-delay-2">
+        <div className="gki-explanation-heading">
+          <div>
+            <span className="gki-eyebrow">GLUCOSE KETONE INDEX</span>
+            <h2>Cara membaca GKI</h2>
+          </div>
+          {gkiCategory && <span className={`gki-current-badge ${gkiCategory.tone}`}>{gkiCategory.label}</span>}
+        </div>
+
+        <div className="gki-formula">
+          <span>Glukosa (mg/dL)</span><b>÷ 18</b><b>÷</b><span>Ketone (mmol/L)</span><b>= GKI</b>
+        </div>
+        {gki !== null && latestGlucose !== null && latestKetone !== null
+          ? <p className="gki-calculation">Perhitungan Anda: {latestGlucose} ÷ 18 ÷ {latestKetone} = <strong>{gki.toFixed(2)}</strong>. {gkiCategory?.description}</p>
+          : <p className="gki-calculation">Catat gula darah dan ketone terlebih dahulu agar nilai GKI dapat dihitung.</p>}
+
+        <div className="gki-ranges" aria-label="Kategori nilai GKI">
+          <div className="red"><strong>&gt; 9</strong><span>Ketosis Minimum</span></div>
+          <div className="orange"><strong>6–9</strong><span>Ketosis Ringan</span></div>
+          <div className="yellow"><strong>3–6</strong><span>Ketosis Sederhana</span></div>
+          <div className="green"><strong>1–3</strong><span>Ketosis Dalam</span></div>
+          <div className="teal"><strong>&lt; 1</strong><span>Ketosis Sangat Dalam</span></div>
+        </div>
+
+        <p className="gki-disclaimer"><strong>Penting:</strong> GKI adalah alat perbandingan metabolik, bukan diagnosis atau ukuran langsung kesehatan. Nilai yang lebih rendah tidak otomatis berarti lebih sehat. Pertimbangkan kondisi tubuh, obat, gejala, serta arahan tenaga kesehatan.</p>
+      </section>
+
       {/* Today's Mission */}
       <div className="mission-card fade-in fade-in-delay-2">
         <div className="mission-header">
@@ -274,9 +311,8 @@ export default function Dashboard() {
         </div>
         <div className="card consumption-list-card">
           {consumptionLog.map((item) => {
-            const isDue = isConsumptionDue(item.time)
             const consumed = consumedKeys.includes(String(item.id))
-            return <div key={item.id} role="button" tabIndex={0} onClick={() => setSelectedConsumption(item)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedConsumption(item) }} className={`consumption-item${isDue ? ' consumption-item-due' : ''}`}>
+            return <div key={item.id} role="button" tabIndex={0} onClick={() => setSelectedConsumption(item)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedConsumption(item) }} className={`consumption-item${consumed ? ' consumption-item-consumed' : ''}`}>
               <div className="consumption-time-block">
                 <span className="consumption-time-text">{item.time}</span>
                 {consumed && (

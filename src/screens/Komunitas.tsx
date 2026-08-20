@@ -8,30 +8,31 @@ import {
   Star,
   TrendingUp,
   Users,
-} from 'lucide-react'
+} from "lucide-react";
 
-const WHATSAPP_COMMUNITY_URL = 'https://chat.whatsapp.com/EoG7bCqdQoU2InrXHORFze'
+const WHATSAPP_COMMUNITY_URL =
+  "https://chat.whatsapp.com/EoG7bCqdQoU2InrXHORFze";
 
 const benefits = [
   {
     icon: MessageCircle,
-    title: 'Diskusi & Tanya Jawab',
-    description: 'Tanya langsung ke sesama member dan mentor berpengalaman.',
-    color: 'purple',
+    title: "Diskusi & Tanya Jawab",
+    description: "Tanya langsung ke sesama member dan mentor berpengalaman.",
+    color: "purple",
   },
   {
     icon: BarChart3,
-    title: 'Update Program',
-    description: 'Dapatkan informasi, tips, dan materi FF72 terbaru.',
-    color: 'pink',
+    title: "Update Program",
+    description: "Dapatkan informasi, tips, dan materi FF72 terbaru.",
+    color: "pink",
   },
   {
     icon: TrendingUp,
-    title: 'Motivasi & Dukungan',
-    description: 'Saling mendukung agar tetap konsisten mencapai target.',
-    color: 'green',
+    title: "Motivasi & Dukungan",
+    description: "Saling mendukung agar tetap konsisten mencapai target.",
+    color: "green",
   },
-]
+];
 
 export default function Komunitas() {
   return (
@@ -44,7 +45,9 @@ export default function Komunitas() {
       <section className="community-hero">
         <div className="community-orb" />
         <div className="community-brand">
-          <div className="community-brand-icon"><MessageCircle size={25} /></div>
+          <div className="community-brand-icon">
+            <MessageCircle size={25} />
+          </div>
           <div>
             <h2>GreenZone Academy</h2>
             <p>WhatsApp Group · FF72 Indonesia</p>
@@ -52,16 +55,34 @@ export default function Komunitas() {
         </div>
 
         <p className="community-description">
-          Gabung komunitas FF72 terbesar di Indonesia. Ribuan member aktif siap mendukung perjalanan fat fasting Anda!
+          Gabung komunitas FF72 terbesar di Indonesia. Ribuan member aktif siap
+          mendukung perjalanan fat fasting Anda!
         </p>
 
         <div className="community-stats">
-          <div><Users /><strong>1.000+</strong><span>Member Aktif</span></div>
-          <div><Star /><strong>5.0 ★</strong><span>Rating</span></div>
-          <div><ShieldCheck /><strong>Official</strong><span>Terverifikasi</span></div>
+          <div>
+            <Users />
+            <strong>1.000+</strong>
+            <span>Member Aktif</span>
+          </div>
+          <div>
+            <Star />
+            <strong>5.0 ★</strong>
+            <span>Rating</span>
+          </div>
+          <div>
+            <ShieldCheck />
+            <strong>Official</strong>
+            <span>Terverifikasi</span>
+          </div>
         </div>
 
-        <a className="community-join-button" href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noreferrer">
+        <a
+          className="community-join-button"
+          href={WHATSAPP_COMMUNITY_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
           <MessageCircle size={18} />
           <span>Gabung WhatsApp Sekarang</span>
           <ArrowUpRight size={17} />
@@ -69,11 +90,13 @@ export default function Komunitas() {
       </section>
 
       <section className="community-panel qr-panel">
-        <div className="community-panel-title"><QrCode /> <span>SCAN QR CODE</span></div>
+        <div className="community-panel-title">
+          <QrCode /> <span>SCAN QR CODE</span>
+        </div>
         <div className="qr-frame">
           <img
             className="community-qr-image"
-            src="/barcodewa.jpeg"
+            src="/wacom.PNG"
             alt="QR WhatsApp GreenZone Academy Indonesia"
           />
         </div>
@@ -82,12 +105,19 @@ export default function Komunitas() {
       </section>
 
       <section className="community-panel benefits-panel">
-        <div className="community-panel-title benefits-title"><Heart /> <span>MANFAAT BERGABUNG</span></div>
+        <div className="community-panel-title benefits-title">
+          <Heart /> <span>MANFAAT BERGABUNG</span>
+        </div>
         <div className="community-benefits">
           {benefits.map(({ icon: Icon, title, description, color }) => (
             <div className="community-benefit" key={title}>
-              <div className={`benefit-icon ${color}`}><Icon /></div>
-              <div><h3>{title}</h3><p>{description}</p></div>
+              <div className={`benefit-icon ${color}`}>
+                <Icon />
+              </div>
+              <div>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -103,5 +133,5 @@ export default function Komunitas() {
         <span>Buka Link Grup WhatsApp</span>
       </a>
     </div>
-  )
+  );
 }

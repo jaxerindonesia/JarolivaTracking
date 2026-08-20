@@ -5,7 +5,10 @@ import type { ReactNode } from 'react'
 export const metadata = {
   title: 'JAXLAB+ Member Area',
   description: 'Kelola program FF72 dan pantau perkembangan Anda.',
-  icons: { icon: '/favicon.svg' },
+  icons: {
+    icon: [{ url: '/favicon.png?v=20260820-2', type: 'image/png' }],
+    shortcut: '/favicon.png?v=20260820-2',
+  },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
